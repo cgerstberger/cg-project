@@ -227,7 +227,7 @@ function makeBetterRect(width, height)
       height = height || 1;
       var position = [
           -width, -height, 0,
-          0, -height, 0
+          0, -height, 0,
           width, -height, 0,
 
           -width, 0, 0,
