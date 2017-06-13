@@ -72,11 +72,12 @@ function createHeightmapSceneGraph(gl, resources) {
   loadTexture();
   var rootHeightmap = new ShaderSGNode(createProgram(gl, resources.vs_heightmap, resources.fs_heightmap));
 
-  var renderNode = new RenderSGNode(triangleStripModelRenderer(makeTriangleStripGrid(10, 100)));
+  var renderNode = new RenderSGNode(triangleStripModelRenderer(makeTriangleStripGrid(10, 50)));
   var heightmapNode = new HeightmapSGNode(heightmapImage, groundImage, renderNode);
   var tranformationNode = new TransformationSGNode(glm.transform({
-    translate: [0, -9, 0],
-    scale: [3, 3, 3]
+    translate: [0, -40, 0],
+    scale: [20, 20, 20],
+    rotateY: 45
   }), [heightmapNode]);
   rootHeightmap.append(tranformationNode);
 
