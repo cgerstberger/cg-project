@@ -36,15 +36,15 @@ var woodTexture = null;
 
 //load the required resources using a utility function
 loadResources({
-  vs_general: '../shader/general.vs.glsl',
-  fs_general: '../shader/general.fs.glsl',
-  vs_particle: '../shader/particle.vs.glsl',
-  fs_particle: '../shader/particle.fs.glsl',
-  vs_texture: '../shader/texture.vs.glsl',
-  fs_texture: '../shader/texture.fs.glsl',
-  watchTower: '../models/sniper/sniper.obj',
-  wood: '../models/wood.jpg',
-  fence: '../models/sniper/Sniper_KSR_29_spec.jpg'
+  vs_general: './shader/general.vs.glsl',
+  fs_general: './shader/general.fs.glsl',
+  vs_particle: './shader/particle.vs.glsl',
+  fs_particle: './shader/particle.fs.glsl',
+  vs_texture: './shader/texture.vs.glsl',
+  fs_texture: './shader/texture.fs.glsl',
+  watchTower: './models/sniper/sniper.obj',
+  wood: './models/wood.jpg',
+  fence: './models/sniper/Sniper_KSR_29_spec.jpg'
 }).then(function (resources /*an object containing our keys with the loaded resources*/) {
   init(resources);
 
