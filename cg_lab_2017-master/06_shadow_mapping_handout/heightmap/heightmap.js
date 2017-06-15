@@ -76,8 +76,7 @@ function createHeightmapSceneGraph(gl, resources) {
   var heightmapNode = new HeightmapSGNode(heightmapImage, groundImage, renderNode);
   var tranformationNode = new TransformationSGNode(glm.transform({
     translate: [0, -40, 0],
-    scale: [20, 20, 20],
-    rotateY: 45
+    scale: [20, 20, 20]
   }), [heightmapNode]);
   rootHeightmap.append(tranformationNode);
 
