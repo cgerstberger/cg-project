@@ -105,6 +105,11 @@ function initCameraMovements()
 var ballTransformationNode = null;
 var bulletTransformationNode = null;
 var sunLightNode = null;
+var ballOrigin = {
+    X: -18,
+    Y: 14,
+    Z: -65
+};
 function createSceneGraph(gl, resources) {
     //create scenegraph
     const root = new ShaderSGNode(createProgram(gl, resources.vs_shadow, resources.fs_shadow));
@@ -179,7 +184,7 @@ function createSceneGraph(gl, resources) {
         head.specular = [0.628281, 0.555802, 0.366065, 1];
         head.shininess = 0.4;
         ballTransformationNode = new TransformationSGNode(mat4.create(), [
-            new TransformationSGNode(glm.translate(-18, 14, -65), [   // (-18, 14, -65)  =>  (5, 14, -65)
+            new TransformationSGNode(glm.translate(ballOrigin.X, ballOrigin.Y, ballOrigin.Z), [   // (-18, 14, -65)  =>  (5, 14, -65)
                 head
             ])
         ]);
@@ -452,10 +457,18 @@ function drawScene(timeInMilliseconds) {
         ballTransformationNode.matrix = glm.translate((timeInMilliseconds -5000) * 0.0035, 0, 0);
         lastBulletTranslation.lastX = (timeInMilliseconds - 5000) * 0.0035;
         bulletTransformationNode.matrix = glm.translate((timeInMilliseconds -5000) * 0.0035, 0, 0);
+        /*console.log("bulletX: " + bulletTransformationNode.matrix[12])
+        console.log("bulletY: " + bulletTransformationNode.matrix[13])
+        console.log("bulletZ: " + bulletTransformationNode.matrix[14])*/
+        lastBulletTranslation.lastX =  bulletTransformationNode.matrix[12];
+        lastBulletTranslation.lastY =  bulletTransformationNode.matrix[13];
+        lastBulletTranslation.lastZ =  bulletTransformationNode.matrix[14];
     }
-    if(timeInMilliseconds >= 10000 && timeInMilliseconds < 14000)
-        bulletTransformationNode.matrix = glm.translate(lastBulletTranslation.lastX + (timeInMilliseconds - 10000) * 0.025, (timeInMilliseconds -10000) * (-0.009), (timeInMilliseconds -10000) * 0.025);
+    //if(timeInMilliseconds >= 10000 && timeInMilliseconds < 14000)
+        //bulletTransformationNode.matrix = glm.translate(lastBulletTranslation.lastX + (timeInMilliseconds - 10000) * 0.025, (timeInMilliseconds -10000) * (-0.009), (timeInMilliseconds -10000) * 0.025);
 
+    if(cameraWithinObjectRadius(ballOrigin.X + lastBulletTranslation.lastX, ballOrigin.Y + lastBulletTranslation.lastY, ballOrigin.Z + lastBulletTranslation.lastZ))
+        ballTransformationNode.matrix = glm.translate(0, 0, (timeInMilliseconds -5000) * 0.0035);
     //draw scene for shadow map into texture
     renderToTexture(timeInMilliseconds);
 
@@ -486,6 +499,16 @@ function drawScene(timeInMilliseconds) {
     root.render(context);
 
     heightmapSG.render(context);
+}
+
+function cameraWithinObjectRadius(objX, objY, objZ){
+    var radius = 50;
+    if((objX > (xPos - radius) && objX < (xPos + radius)) &&
+        (objY > (yPos - radius) && objY < (yPos + radius)) &&
+        (objZ > (zPos - radius) && objZ < (zPos + radius))){
+            console.log("----------------------------- within radius ----------------------------------")
+            return true;
+        }
 }
 
 var newPositonDelta = {
