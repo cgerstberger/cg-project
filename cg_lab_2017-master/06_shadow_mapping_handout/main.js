@@ -97,11 +97,14 @@ function init(resources) {
 
 function initCameraMovements()
 {
-    cameraQueue.push({durationUntil: 5000, newPosX: 95, newPosY: 50, newPosZ: 105, newPitch: -19.5, newYaw: 42});
-    cameraQueue.push({durationUntil: 10000, newPosX: -280, newPosY: 80, newPosZ: -180, newPitch: -20, newYaw: -118});
+    cameraQueue.push({durationUntil: 5000, newPosX: -105, newPosY: 60, newPosZ: -125, newPitch: -21, newYaw: 230});
+    cameraQueue.push({durationUntil: 10000, newPosX: 30, newPosY: 50, newPosZ: -160, newPitch: -20, newYaw: 165});
+    cameraQueue.push({durationUntil: 14000, newPosX: 50, newPosY: 10, newPosZ: -50, newPitch: -25, newYaw: -145});
 }
 
 var ballTransformationNode = null;
+var bulletTransformationNode = null;
+var sunLightNode = null;
 function createSceneGraph(gl, resources) {
     //create scenegraph
     const root = new ShaderSGNode(createProgram(gl, resources.vs_shadow, resources.fs_shadow));
@@ -126,13 +129,26 @@ function createSceneGraph(gl, resources) {
         lightNode.position = [0, 0, 0];
 
         rotateLight = new TransformationSGNode(mat4.create());
-        translateLight = new TransformationSGNode(glm.translate(0, 5, 7)); //translating the light is the same as setting the light position
+        translateLight = new TransformationSGNode(glm.translate(0, 10, 7)); //translating the light is the same as setting the light position
 
         rotateLight.append(translateLight);
         translateLight.append(lightNode);
         translateLight.append(createLightSphere()); //add sphere for debugging: since we use 0,0,0 as our light position the sphere is at the same position as the light source
         shadowNode.append(rotateLight);
     }
+
+    /*{
+        sunLightNode = new LightSGNode();
+        sunLightNode.ambient = [0.2, 0.2, 0.2, 1];
+        sunLightNode.diffuse = [0.8, 0.8, 0.8, 1];
+        sunLightNode.specular = [1, 1, 1, 1];
+        sunLightNode.position = [0, 0, 0];
+
+        var translateSunLight = new TransformationSGNode(glm.translate(0, 10, -80));
+        translateSunLight.append(sunLightNode);
+        translateSunLight.append(createLightSphere());
+        shadowNode.append(translateSunLight);
+    }*/
 
     {
         //initialize C3PO
@@ -168,6 +184,23 @@ function createSceneGraph(gl, resources) {
             ])
         ]);
         shadowNode.append(ballTransformationNode);
+    }
+
+    {
+        let head = new MaterialSGNode([
+            new RenderSGNode(makeSphere(0.25,30,30))
+        ]);
+        //gold
+        head.ambient = [0.24725, 0.1995, 0.0745, 1];
+        head.diffuse = [0.75164, 0.60648, 0.22648, 1];
+        head.specular = [0.628281, 0.555802, 0.366065, 1];
+        head.shininess = 0.4;
+        bulletTransformationNode = new TransformationSGNode(mat4.create(), [
+            new TransformationSGNode(glm.translate(-18, 14, -65), [   // (-18, 14, -65)  =>  (5, 14, -65)
+                head
+            ])
+        ]);
+        shadowNode.append(bulletTransformationNode);
     }
 
     {
@@ -401,6 +434,11 @@ function handleKeys() {
     }
 }
 
+var lastBulletTranslation = {
+    lastX: 0,
+    lastY: 0,
+    lastZ: 0
+};
 function drawScene(timeInMilliseconds) {
     checkForWindowResize(gl);
 
@@ -409,8 +447,14 @@ function drawScene(timeInMilliseconds) {
     rotateNode.matrix = glm.rotateY(timeInMilliseconds * -0.01);
     rotateLight.matrix = glm.rotateY(timeInMilliseconds * 0.05);
     rotateFloorNode.matrix = glm.rotateY(timeInMilliseconds * -0.01);
-    if(timeInMilliseconds < 6000)
-        ballTransformationNode.matrix = glm.translate(timeInMilliseconds * 0.0035, 0, 0);
+    if(timeInMilliseconds > 5000 && timeInMilliseconds < 10000)
+    {
+        ballTransformationNode.matrix = glm.translate((timeInMilliseconds -5000) * 0.0035, 0, 0);
+        lastBulletTranslation.lastX = (timeInMilliseconds - 5000) * 0.0035;
+        bulletTransformationNode.matrix = glm.translate((timeInMilliseconds -5000) * 0.0035, 0, 0);
+    }
+    if(timeInMilliseconds >= 10000 && timeInMilliseconds < 14000)
+        bulletTransformationNode.matrix = glm.translate(lastBulletTranslation.lastX + (timeInMilliseconds - 10000) * 0.025, (timeInMilliseconds -10000) * (-0.009), (timeInMilliseconds -10000) * 0.025);
 
     //draw scene for shadow map into texture
     renderToTexture(timeInMilliseconds);
@@ -429,7 +473,7 @@ function drawScene(timeInMilliseconds) {
         moveCamera(timeInMilliseconds);
 
     //camera implementation
-    let lookAtMatrix = mat4.lookAt(mat4.create(), [0, 5, -50], [0, 0, 0], [0, 5, 0]);
+    let lookAtMatrix = mat4.lookAt(mat4.create(), [0, 0, 0], [0, 0, 0], [0, 5, 0]); // default lookat = [0,0,0], but is translated immediately when the movie starts
     mat4.rotate(context.viewMatrix, context.viewMatrix, glm.deg2rad(-pitch), [1, 0, 0]);
     mat4.rotate(context.viewMatrix, context.viewMatrix, glm.deg2rad(-yaw), [0, 1, 0]);
     mat4.translate(context.viewMatrix, context.viewMatrix, [-xPos, -yPos, -zPos]);
@@ -465,7 +509,10 @@ function moveCamera(curTimeInMilli) {
         newPositonDelta.yPosDelta = (newPosElement.newPosY - yPos) / durationUntil;
         newPositonDelta.zPosDelta = (newPosElement.newPosZ - zPos) / durationUntil;
         newPositonDelta.pitchDelta = (newPosElement.newPitch - pitch) / durationUntil;
-        newPositonDelta.yawDelta = (newPosElement.newYaw - yaw) / durationUntil;
+        var calculatedYaw = newPosElement.newYaw - yaw;
+        if(calculatedYaw < -180)
+            calculatedYaw += 360;
+        newPositonDelta.yawDelta = (calculatedYaw) / durationUntil;
         firstDiffCalc = false;
     }
     if (lastTimeCameraMove != 0) {
@@ -489,11 +536,11 @@ var yaw = 55; //0; // leftRightRatio
 var xPos = 67; //10;
 var yPos = 20;  //100;
 var zPos = 45;  //450;*/
-var pitch = -15; // upDownRatio
-var yaw = 0; // leftRightRatio
-var xPos = 10;
-var yPos = 100;
-var zPos = 450;
+var pitch = -28; // upDownRatio
+var yaw = 180; // leftRightRatio
+var xPos = -5;
+var yPos = 185;
+var zPos = -450;
 var keyBoardUsed = false;
 function animate() {
     var timeNow = new Date().getTime();
