@@ -20,17 +20,12 @@ struct Light {
 	vec4 specular;
 };
 
-Material material = Material(vec4(0.0,0.0,0.0, 1.),
-														vec4(0.490196, 0.419608, 0.337255, 1.),
-														vec4(0.330000, 0.330000, 0.330000, 1.),
-														vec4(0., 0., 0., 0.),
-														0.4);
-
 Light light = Light(vec4(0., 0., 0., 1.),
 										vec4(1., 1., 1., 1.),
 										vec4(1., 1., 1., 1.));
 
 uniform sampler2D u_tex;
+uniform Material u_material;
 
 //varying vectors for light computation
 varying vec3 v_normalVec;
@@ -64,6 +59,6 @@ vec4 calculateSimplePointLight(Light light, Material material, vec3 lightVec,
 }
 
 void main() {
-	gl_FragColor = texture2D(u_tex, v_texCoord);
-	//gl_FragColor = calculateSimplePointLight(light, material, v_lightVec, v_normalVec, v_eyeVec);
+	//gl_FragColor = texture2D(u_tex, v_texCoord);
+	gl_FragColor = calculateSimplePointLight(light, u_material, v_lightVec, v_normalVec, v_eyeVec,texture2D(u_tex, v_texCoord));
 }
