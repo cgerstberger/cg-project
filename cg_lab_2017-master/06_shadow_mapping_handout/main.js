@@ -95,21 +95,43 @@ function init(resources) {
     initInteraction(gl.canvas);
 }
 
-function initCameraMovements()
-{
-    cameraQueue.push({durationUntil: 5000, newPosX: -105, newPosY: 60, newPosZ: -125, newPitch: -21, newYaw: 230});
-    cameraQueue.push({durationUntil: 10000, newPosX: 30, newPosY: 50, newPosZ: -160, newPitch: -20, newYaw: 165});
-    cameraQueue.push({durationUntil: 14000, newPosX: 50, newPosY: 10, newPosZ: -50, newPitch: -25, newYaw: -145});
+function initCameraMovements() {
+    cameraQueue.push({
+        durationUntil: 5000,
+        newPosX: -105,
+        newPosY: 60,
+        newPosZ: -125,
+        newPitch: -21,
+        newYaw: 230
+    });
+    cameraQueue.push({
+        durationUntil: 10000,
+        newPosX: 30,
+        newPosY: 50,
+        newPosZ: -160,
+        newPitch: -20,
+        newYaw: 165
+    });
+    cameraQueue.push({
+        durationUntil: 14000,
+        newPosX: 50,
+        newPosY: 10,
+        newPosZ: -50,
+        newPitch: -25,
+        newYaw: -145
+    });
 }
 
-var ballTransformationNode = null;
+var sniperTransformationNode = null;
 var bulletTransformationNode = null;
 var sunLightNode = null;
-var ballOrigin = {
+var sniperOrigin = {
     X: -18,
     Y: 14,
     Z: -65
 };
+var sniperTimeTransformation = null;
+var bulletTimeTransformation = null;
 function createSceneGraph(gl, resources) {
     //create scenegraph
     const root = new ShaderSGNode(createProgram(gl, resources.vs_shadow, resources.fs_shadow));
@@ -176,24 +198,25 @@ function createSceneGraph(gl, resources) {
 
     {
         let head = new MaterialSGNode([
-            new RenderSGNode(makeSphere(1.5,30,30))
+            new RenderSGNode(makeSphere(1.5, 30, 30))
         ]);
         //gold
         head.ambient = [0.24725, 0.1995, 0.0745, 1];
         head.diffuse = [0.75164, 0.60648, 0.22648, 1];
         head.specular = [0.628281, 0.555802, 0.366065, 1];
         head.shininess = 0.4;
-        ballTransformationNode = new TransformationSGNode(mat4.create(), [
-            new TransformationSGNode(glm.translate(ballOrigin.X, ballOrigin.Y, ballOrigin.Z), [   // (-18, 14, -65)  =>  (5, 14, -65)
+        sniperTransformationNode = new TransformationSGNode(mat4.create(), [
+            new TransformationSGNode(glm.translate(sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z), [ // (-18, 14, -65)  =>  (5, 14, -65)
                 head
             ])
         ]);
-        shadowNode.append(ballTransformationNode);
+        shadowNode.append(sniperTransformationNode);
+        sniperTimeTransformation = new TimeTransformation([5000], [5000], sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z, sniperTransformationNode.matrix);
     }
 
     {
         let head = new MaterialSGNode([
-            new RenderSGNode(makeSphere(0.25,30,30))
+            new RenderSGNode(makeSphere(0.25, 30, 30))
         ]);
         //gold
         head.ambient = [0.24725, 0.1995, 0.0745, 1];
@@ -201,11 +224,12 @@ function createSceneGraph(gl, resources) {
         head.specular = [0.628281, 0.555802, 0.366065, 1];
         head.shininess = 0.4;
         bulletTransformationNode = new TransformationSGNode(mat4.create(), [
-            new TransformationSGNode(glm.translate(-18, 14, -65), [   // (-18, 14, -65)  =>  (5, 14, -65)
+            new TransformationSGNode(glm.translate(sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z), [ // (-18, 14, -65)  =>  (5, 14, -65)
                 head
             ])
         ]);
         shadowNode.append(bulletTransformationNode);
+        bulletTimeTransformation = new TimeTransformation([5000, 10000], [5000, 5000], sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z, bulletTransformationNode.matrix);
     }
 
     {
@@ -399,14 +423,12 @@ function render(timeInMilliseconds) {
     drawScene(timeInMilliseconds);
     animate();
     requestAnimationFrame(render);
-    //console.log(" ");
 }
 
 
 var backAndForth = 0;
 var leftAndRight = 0;
 var upAndDown = 0;
-
 function handleKeys() {
     if (currentlyPressedKeys[33]) {
         // Page Up
@@ -439,11 +461,6 @@ function handleKeys() {
     }
 }
 
-var lastBulletTranslation = {
-    lastX: 0,
-    lastY: 0,
-    lastZ: 0
-};
 function drawScene(timeInMilliseconds) {
     checkForWindowResize(gl);
 
@@ -452,23 +469,10 @@ function drawScene(timeInMilliseconds) {
     rotateNode.matrix = glm.rotateY(timeInMilliseconds * -0.01);
     rotateLight.matrix = glm.rotateY(timeInMilliseconds * 0.05);
     rotateFloorNode.matrix = glm.rotateY(timeInMilliseconds * -0.01);
-    if(timeInMilliseconds > 5000 && timeInMilliseconds < 10000)
-    {
-        ballTransformationNode.matrix = glm.translate((timeInMilliseconds -5000) * 0.0035, 0, 0);
-        lastBulletTranslation.lastX = (timeInMilliseconds - 5000) * 0.0035;
-        bulletTransformationNode.matrix = glm.translate((timeInMilliseconds -5000) * 0.0035, 0, 0);
-        /*console.log("bulletX: " + bulletTransformationNode.matrix[12])
-        console.log("bulletY: " + bulletTransformationNode.matrix[13])
-        console.log("bulletZ: " + bulletTransformationNode.matrix[14])*/
-        lastBulletTranslation.lastX =  bulletTransformationNode.matrix[12];
-        lastBulletTranslation.lastY =  bulletTransformationNode.matrix[13];
-        lastBulletTranslation.lastZ =  bulletTransformationNode.matrix[14];
-    }
-    //if(timeInMilliseconds >= 10000 && timeInMilliseconds < 14000)
-        //bulletTransformationNode.matrix = glm.translate(lastBulletTranslation.lastX + (timeInMilliseconds - 10000) * 0.025, (timeInMilliseconds -10000) * (-0.009), (timeInMilliseconds -10000) * 0.025);
 
-    if(cameraWithinObjectRadius(ballOrigin.X + lastBulletTranslation.lastX, ballOrigin.Y + lastBulletTranslation.lastY, ballOrigin.Z + lastBulletTranslation.lastZ))
-        ballTransformationNode.matrix = glm.translate(0, 0, (timeInMilliseconds -5000) * 0.0035);
+    // transformations for automated camera movement and keyboard kamera movement
+    objectTransformations(timeInMilliseconds);
+
     //draw scene for shadow map into texture
     renderToTexture(timeInMilliseconds);
 
@@ -501,14 +505,50 @@ function drawScene(timeInMilliseconds) {
     heightmapSG.render(context);
 }
 
-function cameraWithinObjectRadius(objX, objY, objZ){
-    var radius = 50;
-    if((objX > (xPos - radius) && objX < (xPos + radius)) &&
-        (objY > (yPos - radius) && objY < (yPos + radius)) &&
-        (objZ > (zPos - radius) && objZ < (zPos + radius))){
-            console.log("----------------------------- within radius ----------------------------------")
-            return true;
+// sniper transformation
+// bullet transformation
+function objectTransformations(timeInMilliseconds){
+    if (!keyBoardUsed) {
+        sniperTransformationNode.matrix = sniperTimeTransformation.transformSniper(timeInMilliseconds);
+        bulletTransformationNode.matrix = bulletTimeTransformation.transformBullet(timeInMilliseconds);
+    } else {
+        // -------------- sniperTransformation -----------------------
+        if (cameraWithinObjectRadius(sniperTimeTransformation) && !sniperTimeTransformation.timeHasSet){
+            sniperTimeTransformation.setStartTimeInMilliseconds(timeInMilliseconds);
+            console.log("XXXXXXXXXXXXXXXXX   withinRadius   XXXXXXXXXXXXXXX");
         }
+        if(sniperTimeTransformation.timeHasSet)
+            sniperTransformationNode.matrix = sniperTimeTransformation.transformSniper(timeInMilliseconds);
+
+        // -------------- bulletTransformation -----------------------
+        if(cameraWithinObjectRadius(bulletTimeTransformation) && !bulletTimeTransformation.timeHasSet)
+            bulletTimeTransformation.setStartTimeInMilliseconds(timeInMilliseconds);
+        if(bulletTimeTransformation.timeHasSet)
+            bulletTransformationNode.matrix = bulletTimeTransformation.transformBullet(timeInMilliseconds);
+    }
+}
+
+function cameraWithinObjectRadius(objX, objY, objZ) {
+    var radius = 50;
+    if ((objX > (xPos - radius) && objX < (xPos + radius)) &&
+        (objY > (yPos - radius) && objY < (yPos + radius)) &&
+        (objZ > (zPos - radius) && objZ < (zPos + radius))) {
+        console.log("----------------------------- within radius ----------------------------------")
+        return true;
+    }
+}
+
+function cameraWithinObjectRadius(timeTransformationObj) {
+    var radius = 50;
+    var objX = timeTransformationObj.origin.X + timeTransformationObj.lastMatrix[12];  // current x coordinate of the object
+    var objY = timeTransformationObj.origin.Y + timeTransformationObj.lastMatrix[13];  // current y coordinate of the object
+    var objZ = timeTransformationObj.origin.Z + timeTransformationObj.lastMatrix[14];  // current z coordinate of the object
+    if ((objX > (xPos - radius) && objX < (xPos + radius)) &&
+        (objY > (yPos - radius) && objY < (yPos + radius)) &&
+        (objZ > (zPos - radius) && objZ < (zPos + radius))) {
+        console.log("----------------------------- within radius ----------------------------------")
+        return true;
+    }
 }
 
 var newPositonDelta = {
@@ -522,6 +562,7 @@ var newPositonDelta = {
 var cameraQueue = [];
 var lastTimeCameraMove = 0;
 var firstDiffCalc = true;
+
 function moveCamera(curTimeInMilli) {
     var timeNow = new Date().getTime();
     if (firstDiffCalc && cameraQueue.length != 0) {
@@ -533,7 +574,7 @@ function moveCamera(curTimeInMilli) {
         newPositonDelta.zPosDelta = (newPosElement.newPosZ - zPos) / durationUntil;
         newPositonDelta.pitchDelta = (newPosElement.newPitch - pitch) / durationUntil;
         var calculatedYaw = newPosElement.newYaw - yaw;
-        if(calculatedYaw < -180)
+        if (calculatedYaw < -180)
             calculatedYaw += 360;
         newPositonDelta.yawDelta = (calculatedYaw) / durationUntil;
         firstDiffCalc = false;
@@ -565,6 +606,7 @@ var xPos = -5;
 var yPos = 185;
 var zPos = -450;
 var keyBoardUsed = false;
+
 function animate() {
     var timeNow = new Date().getTime();
     if (lastTime != 0) {
