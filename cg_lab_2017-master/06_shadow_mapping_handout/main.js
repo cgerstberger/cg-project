@@ -67,6 +67,15 @@ loadResources({
     fs_single: 'shader/single.fs.glsl',
     vs_heightmap: 'heightmap/heightmap.vs.glsl',
     fs_heightmap: 'heightmap/heightmap.fs.glsl',
+    vs_general: 'shader/general.vs.glsl',
+    fs_general: 'shader/general.fs.glsl',
+    vs_particle: 'shader/particle.vs.glsl',
+    fs_particle: 'shader/particle.fs.glsl',
+    fence: 'models/fence.obj',
+    watchTower: 'models/watchtower.obj',
+    tent: 'models/Tent.obj',
+    woodTexture: 'models/Beige.jpg',
+    camouflageTexture: 'models/camouflage.png',
     model: 'models/C-3PO.obj'
 }).then(function(resources /*an object containing our keys with the loaded resources*/ ) {
     init(resources);
@@ -78,26 +87,25 @@ function init(resources) {
     //create a GL context
     gl = createContext(400, 400);
 
-    initRenderToTexture();
+    //initRenderToTexture();
     initCameraMovements();
 
     gl.enable(gl.DEPTH_TEST);
 
+    initBuffers(gl);
+    root = createSceneGraph(gl, resources);
+
     //create scenegraph
     root = createSceneGraph(gl, resources);
 
-    //create scenegraph without floor and simple shader
-    rootnofloor = new ShaderSGNode(createProgram(gl, resources.vs_single, resources.fs_single));
-    //rootnofloor.append(rotateNode); //reuse model part
-
-    heightmapSG = createHeightmapSceneGraph(gl, resources);
+    //heightmapSG = createHeightmapSceneGraph(gl, resources);
 
     initInteraction(gl.canvas);
 }
 
 function initCameraMovements() {
     cameraQueue.push({
-        durationUntil: 5000,
+        durationUntil: 3000,
         newPosX: -105,
         newPosY: 60,
         newPosZ: -125,
@@ -132,7 +140,7 @@ var sniperOrigin = {
 };
 var sniperTimeTransformation = null;
 var bulletTimeTransformation = null;
-function createSceneGraph(gl, resources) {
+/*function createSceneGraph(gl, resources) {
     //create scenegraph
     const root = new ShaderSGNode(createProgram(gl, resources.vs_shadow, resources.fs_shadow));
 
@@ -147,22 +155,7 @@ function createSceneGraph(gl, resources) {
         ]);
     }
 
-    {
-        //initialize light
-        lightNode = new LightSGNode(); //use now framework implementation of light node
-        lightNode.ambient = [0.2, 0.2, 0.2, 1];
-        lightNode.diffuse = [0.8, 0.8, 0.8, 1];
-        lightNode.specular = [1, 1, 1, 1];
-        lightNode.position = [0, 0, 0];
 
-        rotateLight = new TransformationSGNode(mat4.create());
-        translateLight = new TransformationSGNode(glm.translate(0, 10, 7)); //translating the light is the same as setting the light position
-
-        rotateLight.append(translateLight);
-        translateLight.append(lightNode);
-        translateLight.append(createLightSphere()); //add sphere for debugging: since we use 0,0,0 as our light position the sphere is at the same position as the light source
-        shadowNode.append(rotateLight);
-    }
 
     /*{
         sunLightNode = new LightSGNode();
@@ -175,26 +168,9 @@ function createSceneGraph(gl, resources) {
         translateSunLight.append(sunLightNode);
         translateSunLight.append(createLightSphere());
         shadowNode.append(translateSunLight);
-    }*/
-
-    {
-        //initialize C3PO
-        let c3po = new MaterialSGNode([ //use now framework implementation of material node
-            new RenderSGNode(resources.model)
-        ]);
-        //gold
-        c3po.ambient = [0.24725, 0.1995, 0.0745, 1];
-        c3po.diffuse = [0.75164, 0.60648, 0.22648, 1];
-        c3po.specular = [0.628281, 0.555802, 0.366065, 1];
-        c3po.shininess = 0.4;
-
-        rotateNode = new TransformationSGNode(mat4.create(), [
-            new TransformationSGNode(glm.translate(0, -1.5, 0), [
-                c3po
-            ])
-        ]);
-        shadowNode.append(rotateNode);
     }
+
+
 
     {
         let head = new MaterialSGNode([
@@ -232,88 +208,11 @@ function createSceneGraph(gl, resources) {
         bulletTimeTransformation = new TimeTransformation([5000, 10000], [5000, 5000], sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z, bulletTransformationNode.matrix);
     }
 
-    {
-        //initialize floor
-        let floor = new MaterialSGNode(
-            new TextureSGNode(renderTargetDepthTexture, 2,
-                new RenderSGNode(makeRect(0.5, 0.5))
-            )
-        );
 
-        var floor2 = new MaterialSGNode(new TextureSGNode(renderTargetDepthTexture, 2, new RenderSGNode(makeBetterRect(0.2, 0.2))));
-        floor2.ambient = [1, 0, 0, 1];
-        floor2.diffuse = [1, 1, 1, 1];
-        floor2.specular = [0, 0, 0, 1];
-        floor2.position = [0, 0, 0];
-
-        shadowNode.append(new TransformationSGNode(glm.transform({
-            translate: [0, -1.51, 0],
-            rotateX: -90,
-            scale: 3
-        }), [
-            floor
-        ]));
-        rotateFloorNode = new TransformationSGNode(mat4.create(), [new TransformationSGNode(glm.transform({
-            translate: [0, -5.5, 0],
-            rotateX: -90,
-            rotateZ: 45,
-            scale: 3
-        }), [
-            floor2
-        ])]);
-        shadowNode.append(rotateFloorNode);
-
-        var floor3 = new TransformationSGNode(glm.transform({
-            translate: [0, -25, 0]
-        }), [new RenderSGNode(triangleStripModelRenderer(makeTriangleStripGrid(50, 100)))]);
-        shadowNode.append(floor3);
-    }
 
     return root;
-}
+}*/
 
-function initRenderToTexture() {
-    var depthTextureExt = gl.getExtension("WEBGL_depth_texture");
-    if (!depthTextureExt) {
-        alert('No depth texture support!!!');
-        return;
-    }
-
-    //generate color texture (required mainly for debugging and to avoid bugs in some WebGL platforms)
-    renderTargetFramebuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetFramebuffer);
-
-    //create color texture
-    renderTargetColorTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, renderTargetColorTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, framebufferWidth, framebufferHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-    //create depth texture
-    renderTargetDepthTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, renderTargetDepthTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, framebufferWidth, framebufferHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
-
-    //bind textures to framebuffer
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, renderTargetColorTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, renderTargetDepthTexture, 0);
-
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
-        alert('Framebuffer incomplete!');
-    }
-
-    //clean up
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-}
 
 //a scene graph node for setting texture parameters
 class TextureSGNode extends SGNode {
@@ -384,39 +283,6 @@ class ShadowSGNode extends SGNode {
     }
 }
 
-//draw scene for shadow map
-function renderToTexture(timeInMilliseconds) {
-    //bind framebuffer to draw scene into texture
-    gl.bindFramebuffer(gl.FRAMEBUFFER, renderTargetFramebuffer);
-
-    //setup viewport
-    gl.viewport(0, 0, framebufferWidth, framebufferHeight);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    //setup context and camera matrices
-    const context = createSGContext(gl);
-    //setup a projection matrix for the light camera which is large enough to capture our scene
-    context.projectionMatrix = mat4.perspective(mat4.create(), glm.deg2rad(30), framebufferWidth / framebufferHeight, 2, 20);
-    //compute the light's position in world space
-    let lightModelMatrix = mat4.multiply(mat4.create(), rotateLight.matrix, translateLight.matrix);
-    let lightPositionVector = vec4.fromValues(lightNode.position[0], lightNode.position[1], lightNode.position[2], 1);
-    let worldLightPos = vec4.transformMat4(vec4.create(), lightPositionVector, lightModelMatrix);
-    //let the light "shine" towards the scene center (i.e. towards C3PO)
-    let worldLightLookAtPos = [0, 0, 0];
-    let upVector = [0, 1, 0];
-    //TASK 1.1: setup camera to look at the scene from the light's perspective
-    let lookAtMatrix = mat4.lookAt(mat4.create(), [0, 1, -10], [0, 0, 0], [0, 1, 0]); //replace me for TASK 1.1
-    context.viewMatrix = lookAtMatrix;
-
-    //multiply and save light projection and view matrix for later use in shadow mapping shader!
-    shadowNode.lightViewProjectionMatrix = mat4.multiply(mat4.create(), context.projectionMatrix, context.viewMatrix);
-
-    //render scenegraph
-    rootnofloor.render(context); //scene graph without floor to avoid reading from the same texture as we write to...
-
-    //disable framebuffer (render to screen again)
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-}
 
 function render(timeInMilliseconds) {
     handleKeys();
@@ -466,15 +332,12 @@ function drawScene(timeInMilliseconds) {
 
     //update animations
     //Note: We have to update all animations before generating the shadow map!
-    rotateNode.matrix = glm.rotateY(timeInMilliseconds * -0.01);
-    rotateLight.matrix = glm.rotateY(timeInMilliseconds * 0.05);
-    rotateFloorNode.matrix = glm.rotateY(timeInMilliseconds * -0.01);
 
     // transformations for automated camera movement and keyboard kamera movement
     objectTransformations(timeInMilliseconds);
 
     //draw scene for shadow map into texture
-    renderToTexture(timeInMilliseconds);
+    //renderToTexture(timeInMilliseconds);
 
     //setup viewport
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -502,7 +365,7 @@ function drawScene(timeInMilliseconds) {
     //render scenegraph
     root.render(context);
 
-    heightmapSG.render(context);
+    //heightmapSG.render(context);
 }
 
 // sniper transformation
