@@ -84,16 +84,15 @@ class ParticleSGNode extends SGNode{
       this.particles.ages.push(1.0);
     }
     this.currentParticles+=Math.max(nr, 0);
+    if(!this.recreate) this.particleContext.maxParticles-=Math.max(nr, 0);
   }
 
   _draw(context){
     var gl = context.gl;
     if(this.enable){
       this.destroy();
-      if(this.particleContext.recreate||this.firstTime){
         this.firstTime = false;
         this.create();
-      }
 
       var particlePositionLocation = gl.getAttribLocation(context.shader, 'a_position');
       gl.bindBuffer(gl.ARRAY_BUFFER, particlePositionBuffer);

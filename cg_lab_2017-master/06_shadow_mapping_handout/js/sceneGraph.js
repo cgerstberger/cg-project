@@ -15,7 +15,7 @@ function createSceneGraph(gl, resources) {
   var shaderNode = new ShaderSGNode(createProgram(gl, resources.vs_particle, resources.fs_particle));
   var particleNode = new ParticleSGNode({
     maxParticles: 2000,
-    spawnNr: 2000,
+    spawnNr: 500,
     position: {x:-8.5,y:14.0,z:-64.0},
     positionVariance: {x:0.01,y:0.01,z:0.01},
     color: {r:0.5,g:0.5,b:0.5,a:1.0},
@@ -37,7 +37,7 @@ function createSceneGraph(gl, resources) {
   shaderNode = new ShaderSGNode(createProgram(gl, resources.vs_particle, resources.fs_particle));
   particleNode = new ParticleSGNode({
     maxParticles: 2000,
-    spawnNr: 2000,
+    spawnNr: 500,
     position: {x:-5.5,y:14.0,z:-69.0},
     positionVariance: {x:0.01,y:0.01,z:0.01},
     color: {r:0.5,g:0.5,b:0.5,a:1.0},
@@ -45,7 +45,7 @@ function createSceneGraph(gl, resources) {
     velocity: {x:2.0,y:0.0,z:1.0},
     velocityVariance: {x:1.6,y:0.5,z:0.8},
     lifespan: 15,
-    recreate: false 
+    recreate: false
   });
   shaderNode.append(particleNode);
   root.append(shaderNode);
