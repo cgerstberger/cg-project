@@ -20,5 +20,5 @@ void main(void) {
               );
   v_color = a_color;
   gl_Position = u_projection * u_modelView * vec4(currentPosition.xyz, 1.0);
-  gl_PointSize = 0.4;
+  gl_PointSize = 2.0;
 }

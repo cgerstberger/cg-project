@@ -76,6 +76,8 @@ loadResources({
     tent: 'models/Tent.obj',
     woodTexture: 'models/Beige.jpg',
     camouflageTexture: 'models/camouflage.png',
+    sniperTexture: 'models/sniper.jpg',
+    sniper: 'models/sniper.obj',
     model: 'models/C-3PO.obj'
 }).then(function(resources /*an object containing our keys with the loaded resources*/ ) {
     init(resources);
@@ -104,34 +106,91 @@ function init(resources) {
 }
 
 function initCameraMovements() {
+
+  cameraQueue.push({
+      durationUntil: 1000,
+      stay:true
+  });
     cameraQueue.push({
-        durationUntil: 3000,
-        newPosX: -105,
-        newPosY: 60,
-        newPosZ: -125,
-        newPitch: -21,
-        newYaw: 230
+        durationUntil: 4000,
+        newPosX: -64.273014,
+        newPosY: 26.6364012,
+        newPosZ: -78.601250,
+        newPitch: -9.56058,
+        newYaw: 253.753826,
+        stay:false
     });
     cameraQueue.push({
-        durationUntil: 10000,
-        newPosX: 30,
-        newPosY: 50,
-        newPosZ: -160,
-        newPitch: -20,
-        newYaw: 165
+        durationUntil: 8000,
+        newPosX: -19.263652663,
+        newPosY: 20.308244982,
+        newPosZ: -79.068276920,
+        newPitch: -12.06058,
+        newYaw: 224.45382599999994,
+        stay:false
     });
     cameraQueue.push({
-        durationUntil: 14000,
-        newPosX: 50,
-        newPosY: 10,
-        newPosZ: -50,
-        newPitch: -25,
-        newYaw: -145
+        durationUntil: 8500,
+        newPosX: -1.4147555,
+        newPosY: 32.8486406,
+        newPosZ: -113.308785,
+        newPitch: -19.23661,
+        newYaw: 190.62779,
+        stay:false
+    });
+    cameraQueue.push({
+        durationUntil: 14500,
+        stay:true
+    });
+    cameraQueue.push({
+        durationUntil: 15000,
+        newPosX: 40.962138,
+        newPosY: 0.379594,
+        newPosZ: -20.82444,
+        newPitch: -16.73661,
+        newYaw: 219.62779,
+        stay:false
+    });
+    cameraQueue.push({
+        durationUntil: 17000,
+        stay:true
+    });
+    cameraQueue.push({
+        durationUntil: 19000,
+        newPosX: -32.131724,
+        newPosY: 95.68628033,
+        newPosZ: -185.934098,
+        newPitch: -37.73661,
+        newYaw: 157.62779,
+        stay:false
+    });
+    cameraQueue.push({
+        durationUntil: 21000,
+        newPosX: -112.73065,
+        newPosY: 9.369112,
+        newPosZ: -53.46236,
+        newPitch: -15.73661,
+        newYaw: 254.12779,
+        stay:false
+    });
+    cameraQueue.push({
+        durationUntil: 30000,
+        newPosX: -70.4383616,
+        newPosY: 51.8665140,
+        newPosZ: -45.5860961,
+        newPitch: -31.73661,
+        newYaw: 248.02779,
+        stay:false
     });
 }
 
 var sniperTransformationNode = null;
+var sniper2TransformationNode = null;
 var bulletTransformationNode = null;
+var bullet2TransformationNode = null;
+var opponentTransformationNode = null;
+var opponent2TransformationNoden = null;
+var soldierGroupTransformationNode = null;
 var sunLightNode = null;
 var sniperOrigin = {
     X: -18,
@@ -139,80 +198,12 @@ var sniperOrigin = {
     Z: -65
 };
 var sniperTimeTransformation = null;
+var sniper2TimeTransformation = null;
 var bulletTimeTransformation = null;
-/*function createSceneGraph(gl, resources) {
-    //create scenegraph
-    const root = new ShaderSGNode(createProgram(gl, resources.vs_shadow, resources.fs_shadow));
-
-    //add node for setting shadow parameters
-    shadowNode = new ShadowSGNode(renderTargetDepthTexture, 3, framebufferWidth, framebufferHeight);
-    root.append(shadowNode);
-
-    //light debug helper function
-    function createLightSphere() {
-        return new ShaderSGNode(createProgram(gl, resources.vs_single, resources.fs_single), [
-            new RenderSGNode(makeSphere(.2, 10, 10))
-        ]);
-    }
-
-
-
-    /*{
-        sunLightNode = new LightSGNode();
-        sunLightNode.ambient = [0.2, 0.2, 0.2, 1];
-        sunLightNode.diffuse = [0.8, 0.8, 0.8, 1];
-        sunLightNode.specular = [1, 1, 1, 1];
-        sunLightNode.position = [0, 0, 0];
-
-        var translateSunLight = new TransformationSGNode(glm.translate(0, 10, -80));
-        translateSunLight.append(sunLightNode);
-        translateSunLight.append(createLightSphere());
-        shadowNode.append(translateSunLight);
-    }
-
-
-
-    {
-        let head = new MaterialSGNode([
-            new RenderSGNode(makeSphere(1.5, 30, 30))
-        ]);
-        //gold
-        head.ambient = [0.24725, 0.1995, 0.0745, 1];
-        head.diffuse = [0.75164, 0.60648, 0.22648, 1];
-        head.specular = [0.628281, 0.555802, 0.366065, 1];
-        head.shininess = 0.4;
-        sniperTransformationNode = new TransformationSGNode(mat4.create(), [
-            new TransformationSGNode(glm.translate(sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z), [ // (-18, 14, -65)  =>  (5, 14, -65)
-                head
-            ])
-        ]);
-        shadowNode.append(sniperTransformationNode);
-        sniperTimeTransformation = new TimeTransformation([5000], [5000], sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z, sniperTransformationNode.matrix);
-    }
-
-    {
-        let head = new MaterialSGNode([
-            new RenderSGNode(makeSphere(0.25, 30, 30))
-        ]);
-        //gold
-        head.ambient = [0.24725, 0.1995, 0.0745, 1];
-        head.diffuse = [0.75164, 0.60648, 0.22648, 1];
-        head.specular = [0.628281, 0.555802, 0.366065, 1];
-        head.shininess = 0.4;
-        bulletTransformationNode = new TransformationSGNode(mat4.create(), [
-            new TransformationSGNode(glm.translate(sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z), [ // (-18, 14, -65)  =>  (5, 14, -65)
-                head
-            ])
-        ]);
-        shadowNode.append(bulletTransformationNode);
-        bulletTimeTransformation = new TimeTransformation([5000, 10000], [5000, 5000], sniperOrigin.X, sniperOrigin.Y, sniperOrigin.Z, bulletTransformationNode.matrix);
-    }
-
-
-
-    return root;
-}*/
-
+var bullet2TimeTransformation = null;
+var opponentTimeTransformation = null;
+var opponent2TimeTransformation = null;
+var soldierGroupTimeTransformation = null;
 
 //a scene graph node for setting texture parameters
 class TextureSGNode extends SGNode {
@@ -348,7 +339,7 @@ function drawScene(timeInMilliseconds) {
     const context = createSGContext(gl);
     context.projectionMatrix = mat4.perspective(mat4.create(), glm.deg2rad(30), gl.drawingBufferWidth / gl.drawingBufferHeight, 0.01, 1000);
 
-    console.log("timeInMilliseconds: " + timeInMilliseconds);
+    //console.log("timeInMilliseconds: " + timeInMilliseconds);
     if (keyBoardUsed == false)
         moveCamera(timeInMilliseconds);
 
@@ -373,7 +364,12 @@ function drawScene(timeInMilliseconds) {
 function objectTransformations(timeInMilliseconds){
     if (!keyBoardUsed) {
         sniperTransformationNode.matrix = sniperTimeTransformation.transformSniper(timeInMilliseconds);
+        sniper2TransformationNode.matrix = sniper2TimeTransformation.transformSniper(timeInMilliseconds);
         bulletTransformationNode.matrix = bulletTimeTransformation.transformBullet(timeInMilliseconds);
+        bullet2TransformationNode.matrix = bullet2TimeTransformation.transformBullet(timeInMilliseconds);
+        opponentTransformationNode.matrix = opponentTimeTransformation.transformOpponent(timeInMilliseconds);
+        opponent2TransformationNode.matrix = opponent2TimeTransformation.transformOpponent(timeInMilliseconds);
+        soldierGroupTransformationNode.matrix = soldierGroupTimeTransformation.transformSoldierGroup(timeInMilliseconds);
     } else {
         // -------------- sniperTransformation -----------------------
         if (cameraWithinObjectRadius(sniperTimeTransformation) && !sniperTimeTransformation.timeHasSet){
@@ -383,11 +379,43 @@ function objectTransformations(timeInMilliseconds){
         if(sniperTimeTransformation.timeHasSet)
             sniperTransformationNode.matrix = sniperTimeTransformation.transformSniper(timeInMilliseconds);
 
+        // -------------- sniper2Transformation -----------------------
+        if (cameraWithinObjectRadius(sniperTimeTransformation) && !sniper2TimeTransformation.timeHasSet){
+            sniper2TimeTransformation.setStartTimeInMilliseconds(timeInMilliseconds);
+            console.log("XXXXXXXXXXXXXXXXX   withinRadius   XXXXXXXXXXXXXXX");
+        }
+        if(sniper2TimeTransformation.timeHasSet)
+            sniper2TransformationNode.matrix = sniper2TimeTransformation.transformSniper(timeInMilliseconds);
+
         // -------------- bulletTransformation -----------------------
         if(cameraWithinObjectRadius(bulletTimeTransformation) && !bulletTimeTransformation.timeHasSet)
             bulletTimeTransformation.setStartTimeInMilliseconds(timeInMilliseconds);
         if(bulletTimeTransformation.timeHasSet)
             bulletTransformationNode.matrix = bulletTimeTransformation.transformBullet(timeInMilliseconds);
+
+        // -------------- bullet2Transformation -----------------------
+        if(cameraWithinObjectRadius(bullet2TimeTransformation) && !bullet2TimeTransformation.timeHasSet)
+            bullet2TimeTransformation.setStartTimeInMilliseconds(timeInMilliseconds);
+        if(bullet2TimeTransformation.timeHasSet)
+            bullet2TransformationNode.matrix = bullet2TimeTransformation.transformBullet(timeInMilliseconds);
+
+        // -------------- bulletTransformation -----------------------
+        if(cameraWithinObjectRadius(opponentTimeTransformation) && !opponentTimeTransformation.timeHasSet)
+            opponentTimeTransformation.setStartTimeInMilliseconds(timeInMilliseconds);
+        if(opponentTimeTransformation.timeHasSet)
+            opponentTransformationNode.matrix = opponentTimeTransformation.transformOpponent(timeInMilliseconds);
+
+        // -------------- bullet2Transformation -----------------------
+        if(cameraWithinObjectRadius(opponent2TimeTransformation) && !opponent2TimeTransformation.timeHasSet)
+            opponent2TimeTransformation.setStartTimeInMilliseconds(timeInMilliseconds);
+        if(opponent2TimeTransformation.timeHasSet)
+            opponent2TransformationNode.matrix = opponent2TimeTransformation.transformOpponent(timeInMilliseconds);
+
+
+        if(cameraWithinObjectRadius(soldierGroupTimeTransformation) && !soldierGroupTimeTransformation.timeHasSet)
+            soldierGroupTimeTransformation.setStartTimeInMilliseconds(timeInMilliseconds);
+        if(soldierGroupTimeTransformation.timeHasSet)
+            soldierGroupTransformationNode.matrix = soldierGroupTimeTransformation.transformSoldierGroup(timeInMilliseconds);
     }
 }
 
@@ -425,36 +453,54 @@ var newPositonDelta = {
 var cameraQueue = [];
 var lastTimeCameraMove = 0;
 var firstDiffCalc = true;
+var stay = false;
+var newPosElement;
+var countEllepsed = 0.0;
 
 function moveCamera(curTimeInMilli) {
-    var timeNow = new Date().getTime();
+    var timeNow = curTimeInMilli;
     if (firstDiffCalc && cameraQueue.length != 0) {
-        var newPosElement = cameraQueue.shift();
+        newPosElement = cameraQueue.shift();
+        stay = newPosElement.stay;
         newPositonDelta.durationUntil = newPosElement.durationUntil;
-        var durationUntil = newPosElement.durationUntil - curTimeInMilli;
-        newPositonDelta.xPosDelta = (newPosElement.newPosX - xPos) / durationUntil;
-        newPositonDelta.yPosDelta = (newPosElement.newPosY - yPos) / durationUntil;
-        newPositonDelta.zPosDelta = (newPosElement.newPosZ - zPos) / durationUntil;
-        newPositonDelta.pitchDelta = (newPosElement.newPitch - pitch) / durationUntil;
-        var calculatedYaw = newPosElement.newYaw - yaw;
-        if (calculatedYaw < -180)
-            calculatedYaw += 360;
-        newPositonDelta.yawDelta = (calculatedYaw) / durationUntil;
+        if(!stay){
+            var durationUntil = newPosElement.durationUntil - curTimeInMilli;
+            newPositonDelta.xPosDelta = (newPosElement.newPosX - xPos) / durationUntil;
+            newPositonDelta.yPosDelta = (newPosElement.newPosY - yPos) / durationUntil;
+            newPositonDelta.zPosDelta = (newPosElement.newPosZ - zPos) / durationUntil;
+            newPositonDelta.pitchDelta = (newPosElement.newPitch - pitch) / durationUntil;
+            var calculatedYaw = newPosElement.newYaw - yaw;
+            if (calculatedYaw < -180)
+                calculatedYaw += 360;
+            newPositonDelta.yawDelta = (calculatedYaw) / durationUntil;
+        }
         firstDiffCalc = false;
     }
     if (lastTimeCameraMove != 0) {
         if (curTimeInMilli < newPositonDelta.durationUntil) {
-            var timeElapsed = timeNow - lastTimeCameraMove;
-            xPos += newPositonDelta.xPosDelta * timeElapsed;
-            yPos += newPositonDelta.yPosDelta * timeElapsed;
-            zPos += newPositonDelta.zPosDelta * timeElapsed;
-            pitch += newPositonDelta.pitchDelta * timeElapsed;
-            yaw += newPositonDelta.yawDelta * timeElapsed;
+            if(!stay){
+                var timeElapsed = timeNow - lastTimeCameraMove;
+                countEllepsed+=timeElapsed;
+                xPos += newPositonDelta.xPosDelta * timeElapsed;
+                yPos += newPositonDelta.yPosDelta * timeElapsed;
+                zPos += newPositonDelta.zPosDelta * timeElapsed;
+                pitch += newPositonDelta.pitchDelta * timeElapsed;
+                yaw += newPositonDelta.yawDelta * timeElapsed;
+            }
         } else {
+            if(!stay){
+                xPos = newPosElement.newPosX;
+                yPos = newPosElement.newPosY;
+                zPos = newPosElement.newPosZ;
+                pitch = newPosElement.newPitch;
+                yaw = newPosElement.newYaw;
+            }
             firstDiffCalc = true;
         }
     }
     lastTimeCameraMove = timeNow;
+
+
 }
 
 var lastTime = 0;

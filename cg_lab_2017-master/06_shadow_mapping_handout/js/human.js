@@ -66,6 +66,11 @@ var basicTransformations = {
     translation:{x:0.2,y:0.8,z:0.0},
     rotation: {x:0.0,y:0.0,z:0.0},
     scale:{x:1.0,y:1.0,z:1.0}
+  },
+  weapon: {
+    translation:{x:0.0,y:-0.8,z:0.0},
+    rotation: {x:0.0,y:-180.0,z:-90.0},
+    scale:{x:3.0,y:3.0,z:3.0}
   }
 };
 
@@ -86,7 +91,7 @@ function cloneTransformation(basicTransformation){
   return transformation;
 }
 
-function makeSniper(transformations){
+function makeSniper(resources, transformations){
   var transformationNode = createTransformationSGNode(transformations);
   var leftArmTransformation = cloneTransformation(basicTransformations.leftArm);
   leftArmTransformation.rotation.z = 90.0;
@@ -101,7 +106,7 @@ function makeSniper(transformations){
   rightArmTransformation.rotation.x = 90.0;
   rightArmTransformation.rotation.y = 30.0;
   var rightUnderArmTransformation = cloneTransformation(basicTransformations.rightUnderArm);
-  var rightArm = makeArm(rightArmTransformation, rightUnderArmTransformation);
+  var rightArm = makeArm(rightArmTransformation, rightUnderArmTransformation, resources);
   transformationNode.append(rightArm);
   var leftLegTransformation = cloneTransformation(basicTransformations.leftLeg);
   leftLegTransformation.rotation.z=-90;
@@ -169,12 +174,15 @@ function makeHuman(transformations){
   return transformationNode;
 }
 
-function makeArm(transformations,underArmTransformation){
+function makeArm(transformations,underArmTransformation, resources){
   var transformationNode = createTransformationSGNode(transformations);
   var upperArm = sg.transform(glm.translate(0.0,0.0,0.0));
   upperArm.append(new RenderSGNode(makeQuad(0.2,0.7,0.2)));
   var underArm = createTransformationSGNode(underArmTransformation);
   underArm.append(new RenderSGNode(makeQuad(0.2,0.7,0.2)));
+  if(resources){
+    underArm.append(createWeapon(resources, basicTransformations.weapon));
+  }
   transformationNode.append(upperArm);
   transformationNode.append(underArm);
   return transformationNode;
@@ -215,6 +223,30 @@ function makeHead(transformations){
   return transformationNode;
 }
 
+function createWeapon(resources, transformations){
+    var weapon = new MaterialSGNode(
+      new AdvancedTextureSGNode(resources.sniperTexture,
+      new RenderSGNode(resources.sniper)
+    ));
+    //gold
+    weapon.ambient = [0.5, 0.5, 0.5, 1];
+    weapon.diffuse = [0.37647, 0.22352, 0.07450, 1];
+    weapon.specular = [0.0, 0.0, 0.0, 1];
+    weapon.shininess = 0.7;
+
+    if(transformations) {
+      var transformationNode = createTransformationSGNode(transformations);
+      transformationNode.push(weapon);
+      return transformationNode;
+    } else {
+      return new TransformationSGNode(mat4.create(), new TransformationSGNode(glm.translate(-3,-5, 20),  weapon));
+    }
+}
+
+
+
+
+
 function rotateX(angle, transformations, transfermationNode) {
   var factor = Math.sin(Math.PI*angle/180);
   transformations.rotation.x += angle;
@@ -249,7 +281,7 @@ function translate(x,y,z, transformations, transfermationNode) {
 }
 
 class HumanMoveRenderSGNode extends SGNode {
-  constructor(human,distance,velocity, children){
+  constructor(human,distance,velocity, shouldTranslate, children){
     super(children);
     this.human = human;
     this.angle = 0;
@@ -257,46 +289,50 @@ class HumanMoveRenderSGNode extends SGNode {
     this.distance = distance;
     this.distance2 = distance;
     this.velocity = velocity;
+    this.shouldTranslate = shouldTranslate;
+    this.start = false;
   }
 
   render(context) {
-    if(this.distance<0){
-      this.distance = this.distance2;
-      this.velocity.x = -this.velocity.x;
-      this.velocity.y = -this.velocity.y;
-      this.velocity.z = -this.velocity.z;
-      rotateY(180,this.human.transformationNode.transformation,this.human.transformationNode.node);
+    if(this.start){
+      if(this.distance<0&&this.shouldTranslate){
+        this.distance = this.distance2;
+        this.velocity.x = -this.velocity.x;
+        this.velocity.y = -this.velocity.y;
+        this.velocity.z = -this.velocity.z;
+        rotateY(180,this.human.transformationNode.transformation,this.human.transformationNode.node);
+      }
+      if(this.angle>30||this.angle<-30){
+        this.change = -this.change;
+      }
+      rotateX(this.change, this.human.rightArm.transformation,this.human.rightArm.node);
+      rotateX(this.change, this.human.rightLeg.transformation,this.human.rightLeg.node);
+      rotateX(-this.change, this.human.leftArm.transformation,this.human.leftArm.node);
+      rotateX(-this.change, this.human.leftLeg.transformation,this.human.leftLeg.node);
+      this.angle+=this.change;
+      if(this.shouldTranslate)
+        translate(this.velocity.x,this.velocity.y,this.velocity.z,this.human.transformationNode.transformation,this.human.transformationNode.node);
+      this.distance--;
     }
-    if(this.angle>30||this.angle<-30){
-      this.change = -this.change;
-    }
-    rotateX(this.change, this.human.rightArm.transformation,this.human.rightArm.node);
-    rotateX(this.change, this.human.rightLeg.transformation,this.human.rightLeg.node);
-    rotateX(-this.change, this.human.leftArm.transformation,this.human.leftArm.node);
-    rotateX(-this.change, this.human.leftLeg.transformation,this.human.leftLeg.node);
-    this.angle+=this.change;
-    translate(this.velocity.x,this.velocity.y,this.velocity.z,this.human.transformationNode.transformation,this.human.transformationNode.node);
-    this.distance--;
     super.render(context);
   }
 }
 
 class HumanCrawlRenderSGNode extends SGNode {
-  constructor(human, distance, velocity, children){
+  constructor(human, children){
     super(children);
     this.human = human;
     this.angle = 91.5;
-    this.change = 1.5;
-    this.change2 = 1.0;
-    this.distance = distance;
-    this.velocity = velocity;
+    this.change = 3.0;
+    this.change2 = 2.0;
+    this.start = false;
   }
 
   render(context) {
-    if(this.distance>0){
+    if(this.start){
       if(this.angle>90||this.angle<0){
         this.change = -this.change;
-          this.change2 = -this.change2;
+        this.change2 = -this.change2;
       }
       rotateY(this.change2, this.human.rightArm.transformation,this.human.rightArm.node);
       rotateY(this.change, this.human.rightLeg.transformation,this.human.rightLeg.node);
@@ -305,8 +341,6 @@ class HumanCrawlRenderSGNode extends SGNode {
       rotateY(this.change, this.human.leftLeg.transformation,this.human.leftLeg.node);
       rotateX(this.change, this.human.leftUnderLeg.transformation,this.human.leftUnderLeg.node);
       this.angle+=this.change;
-      translate(this.velocity.x,this.velocity.y,this.velocity.z,this.human.transformationNode.transformation,this.human.transformationNode.node);
-      this.distance--;
     }
     super.render(context);
   }

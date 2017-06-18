@@ -22,6 +22,8 @@ class ParticleSGNode extends SGNode{
     };
     this.currentParticles = 0;
     this.initialzed = false;
+    this.firstTime = true;
+    this.enable = false;
   }
 
   destroy() {
@@ -67,18 +69,18 @@ class ParticleSGNode extends SGNode{
   create2(nr) {
     for(var i = 0; i <nr; i++) {
       this.particles.positions = this.particles.positions.concat([
-        (this.particleContext.position.x+(Math.random()-.5)*this.particleContext.variance/3),
-        (this.particleContext.position.y+(Math.random()-.5)*this.particleContext.variance/3),
-        (this.particleContext.position.z+(Math.random()-.5)*this.particleContext.variance/3)]);
+        (this.particleContext.position.x+(Math.random()-.5)*this.particleContext.positionVariance.x),
+        (this.particleContext.position.y+(Math.random()-.5)*this.particleContext.positionVariance.y),
+        (this.particleContext.position.z+(Math.random()-.5)*this.particleContext.positionVariance.z)]);
       this.particles.colors = this.particles.colors.concat([
-        (this.particleContext.color.r+(Math.random()-.5)*this.particleContext.variance),
-				(this.particleContext.color.g+(Math.random()-.5)*this.particleContext.variance),
-				(this.particleContext.color.b+(Math.random()-.5)*this.particleContext.variance),
-				(this.particleContext.color.a+(Math.random()-.5)*this.particleContext.variance)]);
+        (this.particleContext.color.r+(Math.random()-.5)*this.particleContext.colorVariance.r),
+				(this.particleContext.color.g+(Math.random()-.5)*this.particleContext.colorVariance.g),
+				(this.particleContext.color.b+(Math.random()-.5)*this.particleContext.colorVariance.b),
+				(this.particleContext.color.a+(Math.random()-.5)*this.particleContext.colorVariance.a)]);
       this.particles.velocities = this.particles.velocities.concat([
-        (this.particleContext.velocity.x+(Math.random()-.5)*this.particleContext.variance),
-        (this.particleContext.velocity.y+(Math.random()-.5)*this.particleContext.variance),
-        (this.particleContext.velocity.z+(Math.random()-.5)*this.particleContext.variance)]);
+        (this.particleContext.velocity.x+(Math.random()-.5)*this.particleContext.velocityVariance.x),
+        (this.particleContext.velocity.y+(Math.random()-.5)*this.particleContext.velocityVariance.y),
+        (this.particleContext.velocity.z+(Math.random()-.5)*this.particleContext.velocityVariance.z)]);
       this.particles.ages.push(1.0);
     }
     this.currentParticles+=Math.max(nr, 0);
@@ -86,34 +88,39 @@ class ParticleSGNode extends SGNode{
 
   _draw(context){
     var gl = context.gl;
-    this.destroy();
-    this.create();
+    if(this.enable){
+      this.destroy();
+      if(this.particleContext.recreate||this.firstTime){
+        this.firstTime = false;
+        this.create();
+      }
 
-    var particlePositionLocation = gl.getAttribLocation(context.shader, 'a_position');
-    gl.bindBuffer(gl.ARRAY_BUFFER, particlePositionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.particles.positions), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(particlePositionLocation);
-    gl.vertexAttribPointer(particlePositionLocation, 3, gl.FLOAT, false, 0, 0);
+      var particlePositionLocation = gl.getAttribLocation(context.shader, 'a_position');
+      gl.bindBuffer(gl.ARRAY_BUFFER, particlePositionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.particles.positions), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(particlePositionLocation);
+      gl.vertexAttribPointer(particlePositionLocation, 3, gl.FLOAT, false, 0, 0);
 
-    var particleColorLocation = gl.getAttribLocation(context.shader, 'a_color');
-    gl.bindBuffer(gl.ARRAY_BUFFER, particleColorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.particles.colors), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(particleColorLocation);
-    gl.vertexAttribPointer(particleColorLocation, 4, gl.FLOAT, false, 0, 0);
+      var particleColorLocation = gl.getAttribLocation(context.shader, 'a_color');
+      gl.bindBuffer(gl.ARRAY_BUFFER, particleColorBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.particles.colors), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(particleColorLocation);
+      gl.vertexAttribPointer(particleColorLocation, 4, gl.FLOAT, false, 0, 0);
 
-    var particleVelocityLocation = gl.getAttribLocation(context.shader, 'a_velocity');
-    gl.bindBuffer(gl.ARRAY_BUFFER, particleVelocityBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.particles.velocities), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(particleVelocityLocation);
-    gl.vertexAttribPointer(particleVelocityLocation, 3, gl.FLOAT, false, 0, 0);
+      var particleVelocityLocation = gl.getAttribLocation(context.shader, 'a_velocity');
+      gl.bindBuffer(gl.ARRAY_BUFFER, particleVelocityBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.particles.velocities), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(particleVelocityLocation);
+      gl.vertexAttribPointer(particleVelocityLocation, 3, gl.FLOAT, false, 0, 0);
 
-    var particleAgeLocation = gl.getAttribLocation(context.shader, 'a_age');
-    gl.bindBuffer(gl.ARRAY_BUFFER, particleAgeBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.particles.ages), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(particleAgeLocation);
-    gl.vertexAttribPointer(particleAgeLocation, 1, gl.FLOAT, false, 0, 0);
+      var particleAgeLocation = gl.getAttribLocation(context.shader, 'a_age');
+      gl.bindBuffer(gl.ARRAY_BUFFER, particleAgeBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.particles.ages), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(particleAgeLocation);
+      gl.vertexAttribPointer(particleAgeLocation, 1, gl.FLOAT, false, 0, 0);
 
-    gl.drawArrays(gl.POINTS, 0, this.currentParticles);
+      gl.drawArrays(gl.POINTS, 0, this.currentParticles);
+    }
   }
 
   setTransformationUniforms(context) {
