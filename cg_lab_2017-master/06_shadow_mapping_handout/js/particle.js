@@ -84,7 +84,9 @@ class ParticleSGNode extends SGNode{
       this.particles.ages.push(1.0);
     }
     this.currentParticles+=Math.max(nr, 0);
-    if(!this.recreate) this.particleContext.maxParticles-=Math.max(nr, 0);
+    if(!this.particleContext.recreate){
+       this.particleContext.maxParticles-=Math.max(nr, 0);
+     }
   }
 
   _draw(context){
