@@ -101,7 +101,7 @@ class TimeTransformation {
                 this.lastMatrix[12] = this.origin.X;
                 this.lastMatrix[13] = this.origin.Y;
                 this.lastMatrix[14] = this.origin.Z;
-                //this.obj.enable = true;
+                this.obj.enable = true;
             }
             if(this.curAnimation == 1){
               this.lastMatrix[12]=this.origin.X + this.target.X*diff/this.duration;
