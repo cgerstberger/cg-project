@@ -139,15 +139,21 @@ function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }
 
+// size is the resulting size of the square in webgl .. default = 1 unit
+// divisions means how many separations does one row have ... default 10
 function makeTriangleStripGrid(size, divisions) {
   size = (typeof size !== 'undefined') ? size : 1.0;
   divisions = (typeof divisions !== 'undefined') ? divisions : 10;
+  console.log("grid size = " + size);
+  console.log("grid divisions = " + divisions);
 
   var segment_size = size / divisions;
   console.log("segment-size: " + segment_size);
   var vertexPositionData = [];
   var normals = [];
   var textureData = [];
+  // the texture positions are calculated by the textureSpan, which is 1 / divisions
+  // with this texture_span, each part of the texture is assigned to a vertex
   var textureSpan = 1 / divisions;
   console.log("textureSpan: " + textureSpan);
   var textureX = 0;
@@ -156,6 +162,8 @@ function makeTriangleStripGrid(size, divisions) {
     for (var j = 0; j <= divisions; ++j) {
       var rnd = Math.random();
       //console.log("position[" + ((i * segment_size - size/2)*2) + "," + "rnd" + "," + ((j * segment_size - size/2)*2) + "]");
+      // the indices are subtracted by half of the size and then multiplied by two,
+      // because we wanted to center the heightmap e.g. going from -1 to 1 and not from 0 to 2
       vertexPositionData.push((i * segment_size - size / 2) * 2);
       vertexPositionData.push(rnd);
       vertexPositionData.push((j * segment_size - size / 2) * 2);
@@ -175,25 +183,34 @@ function makeTriangleStripGrid(size, divisions) {
   for (var row = 0; row < divisions; ++row) {
     if (row % 2 == 0) {
       for (var i = 0; i <= divisions; ++i) {
+        // the first index is from the bottom row, so therefore the top row is skiped once
+        // then the if branch is used all the time
         if (i != 0) {
           indexData.push(row * (divisions + 1) + i);
+          //console.log("index[" + row + "][" + i + "] = " + (row * (divisions + 1) + i));
         }
         indexData.push((row + 1) * (divisions + 1) + i);
+        //console.log("index[" + row + "][" + i + "] = " + ((row + 1) * (divisions + 1) + i));
       }
     } else {
       for (var i = 0; i <= divisions; ++i) {
+        // the first index is from the bottom row, so therefore the top row is skiped once
+        // then the if branch is used all the time
+        // with the "- (i + 1)" the row is iterated from right to left
         if (i != 0) {
           indexData.push((row + 1) * (divisions + 1) - (i + 1));
+          //console.log("index[" + row + "][" + i + "] = " + ((row + 1) * (divisions + 1) - (i + 1)));
         }
         indexData.push((row + 2) * (divisions + 1) - (i + 1));
+        //console.log("index[" + row + "][" + i + "] = " + ((row + 2) * (divisions + 1) - (i + 1)));
       }
     }
   }
   //indexData = [0,4,1,5,2,6,3,7,11,6,10,5,9,4,8,12,9,13,10,14,11,15];
 
-  console.log("vertexPositionData length: " + vertexPositionData.length);
-  console.log("textureData length: " + textureData.length);
-  console.log("indexData length: " + indexData.length);
+  //console.log("vertexPositionData length: " + vertexPositionData.length);
+  //console.log("textureData length: " + textureData.length);
+  //console.log("indexData length: " + indexData.length);
 
   return {
     position: vertexPositionData,

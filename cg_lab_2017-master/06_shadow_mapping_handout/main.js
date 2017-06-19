@@ -118,7 +118,8 @@ function initCameraMovements() {
         newPosZ: -78.601250,
         newPitch: -9.56058,
         newYaw: 253.753826,
-        stay:false
+        stay:false,
+        text: "simple camera movements + heightmap (all the time)"
     });
     cameraQueue.push({
         durationUntil: 8000,
@@ -127,7 +128,8 @@ function initCameraMovements() {
         newPosZ: -79.068276920,
         newPitch: -12.06058,
         newYaw: 224.45382599999994,
-        stay:false
+        stay:false,
+        text: "human transformations + particle system in the village (fire)"
     });
     cameraQueue.push({
         durationUntil: 8500,
@@ -136,11 +138,13 @@ function initCameraMovements() {
         newPosZ: -113.308785,
         newPitch: -19.23661,
         newYaw: 190.62779,
-        stay:false
+        stay:false,
+        text: "human transformations"
     });
     cameraQueue.push({
         durationUntil: 14500,
-        stay:true
+        stay:true,
+        text: "object transformations (shooting) + particle system (smoke of the gun shots)"
     });
     cameraQueue.push({
         durationUntil: 15000,
@@ -149,11 +153,13 @@ function initCameraMovements() {
         newPosZ: -20.82444,
         newPitch: -16.73661,
         newYaw: 219.62779,
-        stay:false
+        stay:false,
+        text: "human transformations + particle system (fire)"
     });
     cameraQueue.push({
         durationUntil: 17000,
-        stay:true
+        stay:true,
+        text: "human transformations + particle system (fire)"
     });
     cameraQueue.push({
         durationUntil: 19000,
@@ -162,7 +168,8 @@ function initCameraMovements() {
         newPosZ: -185.934098,
         newPitch: -37.73661,
         newYaw: 157.62779,
-        stay:false
+        stay:false,
+        text: "camera movement + heightmap"
     });
     cameraQueue.push({
         durationUntil: 21000,
@@ -171,7 +178,8 @@ function initCameraMovements() {
         newPosZ: -53.46236,
         newPitch: -15.73661,
         newYaw: 254.12779,
-        stay:false
+        stay:false,
+        text: "human transformations"
     });
     cameraQueue.push({
         durationUntil: 30000,
@@ -180,7 +188,8 @@ function initCameraMovements() {
         newPosZ: -45.5860961,
         newPitch: -31.73661,
         newYaw: 248.02779,
-        stay:false
+        stay:false,
+        text: "human transformations + particle system (fire)"
     });
 }
 
@@ -311,7 +320,7 @@ function handleKeys() {
         // Up cursor key or W
         backAndForth = 0.1;
     } else if (currentlyPressedKeys[40] || currentlyPressedKeys[83]) {
-        // Down cursor key
+        // Down cursor key or S
         backAndForth = -0.1;
     } else {
         backAndForth = 0;
@@ -320,9 +329,6 @@ function handleKeys() {
 
 function drawScene(timeInMilliseconds) {
     checkForWindowResize(gl);
-
-    //update animations
-    //Note: We have to update all animations before generating the shadow map!
 
     // transformations for automated camera movement and keyboard kamera movement
     objectTransformations(timeInMilliseconds);
@@ -340,7 +346,7 @@ function drawScene(timeInMilliseconds) {
     context.projectionMatrix = mat4.perspective(mat4.create(), glm.deg2rad(30), gl.drawingBufferWidth / gl.drawingBufferHeight, 0.01, 1000);
 
     //console.log("timeInMilliseconds: " + timeInMilliseconds);
-    if (keyBoardUsed == false)
+    if (!keyBoardUsed)
         moveCamera(timeInMilliseconds);
 
     //camera implementation
@@ -459,6 +465,9 @@ var countEllepsed = 0.0;
 
 function moveCamera(curTimeInMilli) {
     var timeNow = curTimeInMilli;
+    // the first time from the animated camera flight, we need to load the first queue element and calculate the newPositionDelta values
+    // this value is calculated by subtracting the current position from the new position and dividing it by the duration
+    // when this is done, in every render cycle the delta is multiplied by the elapsed time to get the new interpolated position
     if (firstDiffCalc && cameraQueue.length != 0) {
         newPosElement = cameraQueue.shift();
         stay = newPosElement.stay;
@@ -470,6 +479,7 @@ function moveCamera(curTimeInMilli) {
             newPositonDelta.zPosDelta = (newPosElement.newPosZ - zPos) / durationUntil;
             newPositonDelta.pitchDelta = (newPosElement.newPitch - pitch) / durationUntil;
             var calculatedYaw = newPosElement.newYaw - yaw;
+            // solved problem that camera rotated in wrong direction
             if (calculatedYaw < -180)
                 calculatedYaw += 360;
             newPositonDelta.yawDelta = (calculatedYaw) / durationUntil;
@@ -499,7 +509,10 @@ function moveCamera(curTimeInMilli) {
         }
     }
     lastTimeCameraMove = timeNow;
-
+    if(newPosElement != null && newPosElement != undefined && newPosElement.text != undefined)
+      displayText(newPosElement.text);
+    else
+      displayText("");
 
 }
 
