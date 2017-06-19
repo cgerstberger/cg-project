@@ -54,10 +54,6 @@ var framebufferHeight = 1024;
 var lightViewProjectionMatrix;
 
 var heightmapSG;
-/*var heightmapImage;
-var heightmapTexture;
-var groundImage;
-var groundTexture;*/
 
 //load the required resources using a utility function
 loadResources({
@@ -245,44 +241,6 @@ class TextureSGNode extends SGNode {
     }
 }
 
-//a scene graph node for setting shadow parameters
-class ShadowSGNode extends SGNode {
-    constructor(shadowtexture, textureunit, width, height, children) {
-        super(children);
-        this.shadowtexture = shadowtexture;
-        this.textureunit = textureunit;
-        this.texturewidth = width;
-        this.textureheight = height;
-
-        this.lightViewProjectionMatrix = mat4.create(); //has to be updated each frame
-    }
-
-    render(context) {
-        //set additional shader parameters
-        gl.uniform1i(gl.getUniformLocation(context.shader, 'u_depthMap'), this.textureunit);
-
-        //pass shadow map size to shader (required for extra task)
-        gl.uniform1f(gl.getUniformLocation(context.shader, 'u_shadowMapWidth'), this.texturewidth);
-        gl.uniform1f(gl.getUniformLocation(context.shader, 'u_shadowMapHeight'), this.textureheight);
-
-        //TASK 2.1: compute eye-to-light matrix by multiplying this.lightViewProjectionMatrix and context.invViewMatrix
-        //Hint: Look at the computation of lightViewProjectionMatrix to see how to multiply two matrices and for the correct order of the matrices!
-        var eyeToLightMatrix = mat4.create();
-        gl.uniformMatrix4fv(gl.getUniformLocation(context.shader, 'u_eyeToLightMatrix'), false, eyeToLightMatrix);
-
-        //activate and bind texture
-        gl.activeTexture(gl.TEXTURE0 + this.textureunit);
-        gl.bindTexture(gl.TEXTURE_2D, this.shadowtexture);
-
-        //render children
-        super.render(context);
-
-        //clean up
-        gl.activeTexture(gl.TEXTURE0 + this.textureunit);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-    }
-}
-
 
 function render(timeInMilliseconds) {
     handleKeys();
@@ -437,9 +395,9 @@ function cameraWithinObjectRadius(objX, objY, objZ) {
 
 function cameraWithinObjectRadius(timeTransformationObj) {
     var radius = 50;
-    var objX = timeTransformationObj.origin.X + timeTransformationObj.lastMatrix[12];  // current x coordinate of the object
-    var objY = timeTransformationObj.origin.Y + timeTransformationObj.lastMatrix[13];  // current y coordinate of the object
-    var objZ = timeTransformationObj.origin.Z + timeTransformationObj.lastMatrix[14];  // current z coordinate of the object
+    var objX = timeTransformationObj.origin.X;  // current x coordinate of the object
+    var objY = timeTransformationObj.origin.Y;  // current y coordinate of the object
+    var objZ = timeTransformationObj.origin.Z;  // current z coordinate of the object
     if ((objX > (xPos - radius) && objX < (xPos + radius)) &&
         (objY > (yPos - radius) && objY < (yPos + radius)) &&
         (objZ > (zPos - radius) && objZ < (zPos + radius))) {
@@ -478,8 +436,8 @@ function moveCamera(curTimeInMilli) {
             newPositonDelta.yPosDelta = (newPosElement.newPosY - yPos) / durationUntil;
             newPositonDelta.zPosDelta = (newPosElement.newPosZ - zPos) / durationUntil;
             newPositonDelta.pitchDelta = (newPosElement.newPitch - pitch) / durationUntil;
-            var calculatedYaw = newPosElement.newYaw - yaw;
             // solved problem that camera rotated in wrong direction
+            var calculatedYaw = newPosElement.newYaw - yaw;
             if (calculatedYaw < -180)
                 calculatedYaw += 360;
             newPositonDelta.yawDelta = (calculatedYaw) / durationUntil;
@@ -513,15 +471,9 @@ function moveCamera(curTimeInMilli) {
       displayText(newPosElement.text);
     else
       displayText("");
-
 }
 
 var lastTime = 0;
-/*var pitch = -17; //-15; // upDownRatio
-var yaw = 55; //0; // leftRightRatio
-var xPos = 67; //10;
-var yPos = 20;  //100;
-var zPos = 45;  //450;*/
 var pitch = -28; // upDownRatio
 var yaw = 180; // leftRightRatio
 var xPos = -5;
@@ -540,11 +492,11 @@ function animate() {
         }
         pitch += upAndDown * elapsed;
         yaw += leftAndRight * elapsed;
-        console.log("xPos: " + xPos);
+        /*console.log("xPos: " + xPos);
         console.log("yPos: " + yPos);
         console.log("zPos: " + zPos);
         console.log("pitch: " + pitch);
-        console.log("yaw: " + yaw);
+        console.log("yaw: " + yaw);*/
     }
     lastTime = timeNow;
 }
@@ -598,45 +550,20 @@ function initInteraction(canvas) {
 }
 
 
-function makeBetterRect(width, height) {
-    width = width || 1;
-    height = height || 1;
-    console.log("rect-width = " + width);
-    console.log("rect-height = " + height);
-    var position = [-width, -height, 0.5,
-        0, -height, 0,
-        width, -height, 0.5,
+class MyTextureSGNode extends AdvancedTextureSGNode {
 
-        -width, 0, 0,
-        0, 0, 0,
-        width, 0, 0,
+  constructor(image, children){
+    super(image,children);
+  }
 
-        -width, height, 0.5,
-        0, height, 0,
-        width, height, 0.5
-    ];
-    var normal = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
-    var texture = [
-        0, 0,
-        0.5, 0,
-        1, 0,
-        0.5, 0,
-        0.5, 0.5,
-        0.5, 1,
-        1, 0,
-        1, 0.5,
-        1, 1
-    ];
-    var index = [
-        0, 1, 4, 4, 3, 0,
-        1, 2, 5, 5, 4, 1,
-        3, 4, 7, 7, 6, 3,
-        4, 5, 8, 8, 7, 4
-    ];
-    return {
-        position: position,
-        normal: normal,
-        texture: texture,
-        index: index
-    };
+  render(context) {
+    var u_loc = gl.getUniformLocation(context.shader, 'u_enableTexture');
+    var val = gl.getUniform(context.shader, u_loc);
+    gl.uniform1i(u_loc, 1);
+    var val2 = gl.getUniform(context.shader, u_loc);
+    //render children
+    super.render(context);
+
+    gl.uniform1i(u_loc, val);
+  }
 }

@@ -4,8 +4,8 @@ function createSceneGraph(gl, resources) {
   root.append(heightmapSG);
   var transformationNode = new TransformationSGNode(glm.translate(0.0,5.0,0.0));
   //root.append(transformationNode);
-  transformationNode.append(createParticles(gl, resources));
-//createCheesy(root);
+  transformationNode.append(createFire(gl, resources));
+  //transformationNode.append(light);
 
   bulletTransformationNode = createBullet({
     translation: {x:-15, y:14, z:-5},
@@ -14,8 +14,8 @@ function createSceneGraph(gl, resources) {
   });
   var shaderNode = new ShaderSGNode(createProgram(gl, resources.vs_particle, resources.fs_particle));
   var particleNode = new ParticleSGNode({
-    maxParticles: 2000,
-    spawnNr: 500,
+    maxParticles: 1500,
+    spawnNr: 1500,
     position: {x:-8.5,y:14.0,z:-64.0},
     positionVariance: {x:0.01,y:0.01,z:0.01},
     color: {r:0.5,g:0.5,b:0.5,a:1.0},
@@ -27,7 +27,7 @@ function createSceneGraph(gl, resources) {
   });
   shaderNode.append(particleNode);
   root.append(shaderNode);
-  bulletTimeTransformation = new TimeTransformation([14000], [1000], {X:-5, Y:19, Z:-83}, {X:70, Y:-5, Z:0}, bulletTransformationNode.matrix, particleNode);
+  bulletTimeTransformation = new TimeTransformation([2000,14000], [12000,1000], {X:-5, Y:19, Z:-83}, {X:70, Y:-5, Z:0}, bulletTransformationNode.matrix, particleNode);
   bullet2TransformationNode = createBullet({
     translation: {x:sniperOrigin.X+20, y:sniperOrigin.Y+3, z:sniperOrigin.Z},
     rotation: {x:0,y:0,z:0},
@@ -36,8 +36,8 @@ function createSceneGraph(gl, resources) {
 
   shaderNode = new ShaderSGNode(createProgram(gl, resources.vs_particle, resources.fs_particle));
   particleNode = new ParticleSGNode({
-    maxParticles: 2000,
-    spawnNr: 500,
+    maxParticles: 1500,
+    spawnNr: 1500,
     position: {x:-5.5,y:14.0,z:-69.0},
     positionVariance: {x:0.01,y:0.01,z:0.01},
     color: {r:0.5,g:0.5,b:0.5,a:1.0},
@@ -49,18 +49,18 @@ function createSceneGraph(gl, resources) {
   });
   shaderNode.append(particleNode);
   root.append(shaderNode);
-  bullet2TimeTransformation = new TimeTransformation([14000], [1000], {X:-2, Y:19, Z:-88}, {X:85.1, Y:-5, Z:-12.8}, bullet2TransformationNode.matrix, particleNode);
+  bullet2TimeTransformation = new TimeTransformation([2000,14000], [12000,1000], {X:-2, Y:19, Z:-88}, {X:85.1, Y:-5, Z:-12.8}, bullet2TransformationNode.matrix, particleNode);
   root.append(bulletTransformationNode);
   root.append(bullet2TransformationNode);
 
-  root.append(createBullet({
-    translation: {x:0, y:10, z:0},
-    rotation: {x:0,y:0,z:0},
-    scale: {x:5,y:5,z:5}
-  }));
-
   createHumans(resources, root);
   root.append(createEnemyCamp(gl,resources));
+
+  var light = new LightSGNode([78, -16.5, 15],new RenderSGNode(makeSphere(0.01, 10,10)));
+  light.diffuse = [1, 0.3, 0, 1];
+  light.specular = [1, 0.3, 0, 1];
+  transformationNode.append(light);
+  root.append(light);
   return root;
 }
 
@@ -69,10 +69,10 @@ function createBullet(resources, transformations){
         new RenderSGNode(makeSphere(0.1, 30, 30))
     ]);
     //gold
-    bullet.ambient = [0.5, 0.5, 0.5, 1];
-    bullet.diffuse = [0.37647, 0.22352, 0.07450, 1];
-    bullet.specular = [0.0, 0.0, 0.0, 1];
-    bullet.shininess = 0.7;
+    bullet.ambient = [0.24725, 0.1995, 0.0745, 1];
+    bullet.diffuse = [0.75164, 0.60648, 0.22648, 1];
+    bullet.specular = [0.628281, 0.555802, 0.366065, 1];
+    bullet.shininess = 0.4;
 
     if(transformations) {
       var transformationNode = createTransformationSGNode(transformations);
@@ -83,7 +83,7 @@ function createBullet(resources, transformations){
     }
 }
 
-function createParticles(gl, resources){
+function createFire(gl, resources){
   var shaderNode = new ShaderSGNode(createProgram(gl, resources.vs_particle, resources.fs_particle));
   var particleNode = new ParticleSGNode({
     maxParticles: 10000,
@@ -121,9 +121,9 @@ function createFence(resources){
 
 function createWatchTower(resources, transformations){
   var watchTower = new MaterialSGNode(
-    new AdvancedTextureSGNode(resources.woodTexture,
+    //new MyTextureSGNode(resources.woodTexture,
     new RenderSGNode(resources.watchTower)
-  ));
+  );
   //gold
   watchTower.ambient = [0.5, 0.5, 0.5, 1];
   watchTower.diffuse = [0.37647, 0.22352, 0.07450, 1];
@@ -141,14 +141,13 @@ function createWatchTower(resources, transformations){
 
 function createTent(resources, transformations){
   var tent = new MaterialSGNode(
-    new AdvancedTextureSGNode(resources.woodTexture,
     new RenderSGNode(resources.tent)
-  ));
+  );
   //gold
-  tent.ambient = [0.5, 0.5, 0.5, 1];
-  tent.diffuse = [0.37647, 0.22352, 0.07450, 1];
-  tent.specular = [0.0, 0.0, 0.0, 1];
-  tent.shininess = 0.7;
+  tent.ambient = [0.0, 0.0, 0.0, 1];
+  tent.diffuse = [1.000000, 0.937255, 0.847059, 1];
+  tent.specular = [0.004706, 0.004706, 0.004706, 1];
+  tent.shininess = 1.0;
 
   if(transformations) {
     var transformationNode = createTransformationSGNode(transformations);
@@ -200,7 +199,7 @@ function createEnemyCamp(gl,resources) {
   opponentTimeTransformation = new TimeTransformation([15000], [500],
     {X:0, Y:-110, Z:0}, {X:90, Y:0, Z:90},
     opponentTransformationNode.matrix, 8.85);
-  transformationNode.append(new AdvancedTextureSGNode(resources.camouflageTexture,
+  transformationNode.append(new MyTextureSGNode(resources.camouflageTexture,
     opponent.transformationNode.node));
   opponent = makeHuman({
     translation: {x:10, y:8.85, z:10},
@@ -211,7 +210,7 @@ function createEnemyCamp(gl,resources) {
   opponent2TimeTransformation = new TimeTransformation([15000], [500],
     {X:0, Y:-110, Z:0}, {X:90, Y:0, Z:90},
     opponent2TransformationNode.matrix, 8.85);
-  transformationNode.append(new AdvancedTextureSGNode(resources.camouflageTexture,
+  transformationNode.append(new MyTextureSGNode(resources.camouflageTexture,
     opponent.transformationNode.node));
   opponent = makeHuman({
     translation: {x:20, y:3, z:-5},
@@ -220,13 +219,13 @@ function createEnemyCamp(gl,resources) {
   });
   var moveNode = new HumanMoveRenderSGNode(opponent,500,{x:0.0,y:0.0,z:0.05}, true, opponent.transformationNode.node);
   moveNode.start = true;
-  transformationNode.append(new AdvancedTextureSGNode(resources.camouflageTexture,moveNode));
+  transformationNode.append(new MyTextureSGNode(resources.camouflageTexture,moveNode));
   var particleTransformationNode = createTransformationSGNode({
     translation: {x:5, y:0.3, z:0},
     rotation: {x:0,y:0,z:0},
     scale: {x:1.0,y:1.0,z:1.0}
   });
-  particleTransformationNode.append(createParticles(gl, resources));
+  particleTransformationNode.append(createFire(gl, resources));
   transformationNode.append(particleTransformationNode);
 
   return transformationNode;
@@ -243,7 +242,7 @@ function createHumans(resources, root){
   sniperTimeTransformation = new TimeTransformation([2000], [10000],
     {X:-20, Y:13, Z:-68}, {X:-9, Y:13.5, Z:-63},
     sniperTransformationNode.matrix, crawlNode);
-  root.append(new AdvancedTextureSGNode(resources.camouflageTexture, crawlNode));
+  root.append(new MyTextureSGNode(resources.camouflageTexture, crawlNode));
   var sniper2 = makeSniper(resources,{
     translation: {x:-15, y:13, z:-65},
     rotation: {x:90,y:0,z:-60},
@@ -252,7 +251,7 @@ function createHumans(resources, root){
   crawlNode = new HumanCrawlRenderSGNode(sniper2, sniper2.transformationNode.node)
   sniper2TransformationNode = sniper2.transformationNode.node;
   sniper2TimeTransformation = new TimeTransformation([2000], [7500], {X:-15, Y:13, Z:-65}, {X:-6, Y:13.5, Z:-68}, sniper2TransformationNode.matrix, crawlNode);
-  root.append(new AdvancedTextureSGNode(resources.camouflageTexture, crawlNode));
+  root.append(new MyTextureSGNode(resources.camouflageTexture, crawlNode));
 
   var soldierGroup = createTransformationSGNode({
     translation: {x:-60, y:-11, z:-35},
@@ -266,31 +265,31 @@ function createHumans(resources, root){
     rotation: {x:0,y:0,z:0},
     scale: {x:0.7,y:0.7,z:0.7}
   });
-  soldierGroup.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
+  soldierGroup.append(new MyTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
   soldier = makeHuman({
     translation: {x:2, y:0, z:5},
     rotation: {x:0,y:0,z:0},
     scale: {x:0.7,y:0.7,z:0.7}
   });
-  soldierGroup.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
+  soldierGroup.append(new MyTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
   soldier = makeHuman({
     translation: {x:-2, y:0, z:5},
     rotation: {x:0,y:0,z:0},
     scale: {x:0.7,y:0.7,z:0.7}
   });
-  soldierGroup.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
+  soldierGroup.append(new MyTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
   soldier = makeHuman({
     translation: {x:2, y:0, z:10},
     rotation: {x:0,y:0,z:0},
     scale: {x:0.7,y:0.7,z:0.7}
   });
-  soldierGroup.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
+  soldierGroup.append(new MyTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
   soldier = makeHuman({
     translation: {x:-2, y:0, z:10},
     rotation: {x:0,y:0,z:0},
     scale: {x:0.7,y:0.7,z:0.7}
   });
-  soldierGroup.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
+  soldierGroup.append(new MyTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(soldier,500,null, false, soldier.transformationNode.node)));
   root.append(soldierGroup);
 }
 

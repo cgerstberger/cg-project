@@ -4,19 +4,40 @@ function makeQuad(width, height, depth){
   depth/=2;
   var position = [-0,-height,-depth, -0,-height,depth, -0,0,-depth, -0,0,depth,
                   width,-height,-depth, width,0,-depth, width,-height,depth, width,0,depth];
+      position = [-0,-height,-depth, -0,-height,depth, -0,0,-depth,
+                -0,-height,depth, -0,0,-depth, -0,0,depth, //firsRect
+                -0,0,-depth, -0,0,depth, width,0,-depth,
+                -0,0,depth, width,0,-depth, width,0,depth, //secondRect
+                width,0,-depth, width,-height,-depth, width,0,depth,
+                width,-height,-depth, width,0,depth, width,-height,depth, //thirdRect
+                width,-height,-depth, width,-height,depth, -0,-height,-depth,
+                width,-height,depth, -0,-height,-depth, -0,-height,depth,//fourthRect
+                -0,-height,-depth, width,-height,-depth, -0,0,-depth,
+                width,-height,-depth, -0,0,-depth, width,0,-depth, //fifthRect
+                -0,0,depth, width,0,depth, -0,-height,depth,
+                width,0,depth, -0,-height,depth, width,-height,depth];//eightRect
   var index = [0,1,2, 1,2,3,
-              1,3,5, 3,5,7,
+              2,3,5, 3,5,7,
               5,4,7, 4,7,6,
               4,6,0, 6,0,1,
               0,4,2, 4,2,5,
               3,7,1, 7,1,6];
-  var normal = [0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1];
-  var texture = [0,0, 0,1, 1,0, 1,1,
-                0,0, 0,1, 1,0, 1,1];
+  var normal = [-1,0,0, -1,0,0, -1,0,0, -1,0,0, -1,0,0, -1,0,0,
+                0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0,
+                1,0,0, 1,0,0, 1,0,0, 1,0,0, 1,0,0, 1,0,0,
+                0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0,
+                0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
+                0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1, 0,0,1];
+  var texture = [0,0, 0,1, 1,0, 0,1, 1,0, 1,1,
+                0,0, 0,1, 1,0, 0,1, 1,0, 1,1,
+                0,0, 0,1, 1,0, 0,1, 1,0, 1,1,
+                0,0, 0,1, 1,0, 0,1, 1,0, 1,1,
+                0,0, 0,1, 1,0, 0,1, 1,0, 1,1,
+                0,0, 0,1, 1,0, 0,1, 1,0, 1,1];
   return {
     position: position,
-    index: index,
-    //normal: normal,
+    //index: index,
+    normal: normal,
     texture: texture
   };
 }
@@ -150,7 +171,6 @@ function makeSniper(resources, transformations){
 function makeHuman(transformations){
   var transformationNode = createTransformationSGNode(transformations);
   var leftArm = makeArm(basicTransformations.leftArm, basicTransformations.leftUnderArm);
-
   transformationNode.append(leftArm);
   var rightArm = makeArm(basicTransformations.rightArm, basicTransformations.rightUnderArm);
   transformationNode.append(rightArm);
@@ -225,9 +245,8 @@ function makeHead(transformations){
 
 function createWeapon(resources, transformations){
     var weapon = new MaterialSGNode(
-      new AdvancedTextureSGNode(resources.sniperTexture,
       new RenderSGNode(resources.sniper)
-    ));
+    );
     //gold
     weapon.ambient = [0.5, 0.5, 0.5, 1];
     weapon.diffuse = [0.37647, 0.22352, 0.07450, 1];

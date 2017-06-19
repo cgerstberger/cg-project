@@ -98,26 +98,22 @@ class TimeTransformation {
             if(!this.alreadyTransformed){
                 this.alreadyTransformed = true;
                 this.timeHasSet = true;
-                this.lastMatrix[12] = this.origin.X;
-                this.lastMatrix[13] = this.origin.Y;
-                this.lastMatrix[14] = this.origin.Z;
-                this.obj.enable = true;
             }
-            if(this.curAnimation == 1){
+            if(this.curAnimation == 2){
               this.lastMatrix[12]=this.origin.X + this.target.X*diff/this.duration;
               this.lastMatrix[13]=this.origin.Y + this.target.Y*diff/this.duration;
               this.lastMatrix[14]=this.origin.Z + this.target.Z*diff/this.duration;
             }
-            if(this.curAnimation == 2)
-                this.lastMatrix = glm.translate(this.lastTranslationCoords.X + diff * 0.025, this.lastTranslationCoords.Y + diff * (-0.009), this.lastTranslationCoords.Z + diff * 0.025);
-        } else if(diff > this.duration && this.startTimes.length > 0){
+            if(this.curAnimation == 1); //do nothing and wait for sniper till he is at his place
+          } else if(diff > this.duration && this.startTimes.length > 0){
             this.getNextTime();
+            this.lastMatrix[12] = this.origin.X;
+            this.lastMatrix[13] = this.origin.Y;
+            this.lastMatrix[14] = this.origin.Z;
+            this.obj.enable = true;
             this.lastTranslationCoords.X = this.lastMatrix[12];
             this.lastTranslationCoords.Y = this.lastMatrix[13];
             this.lastTranslationCoords.Z = this.lastMatrix[14];
-            this.origin.X += this.lastTranslationCoords.X;
-            this.origin.Y += this.lastTranslationCoords.Y;
-            this.origin.Z += this.lastTranslationCoords.Z;
         } else {
           this.lastMatrix[13] = -100;
         }

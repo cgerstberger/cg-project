@@ -86,6 +86,8 @@ class ParticleSGNode extends SGNode{
     this.currentParticles+=Math.max(nr, 0);
     if(!this.particleContext.recreate){
        this.particleContext.maxParticles-=Math.max(nr, 0);
+       console.log("Created "+nr);
+       console.log("Left " + this.particleContext.maxParticles);
      }
   }
 
