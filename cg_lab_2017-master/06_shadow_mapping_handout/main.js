@@ -57,24 +57,16 @@ var heightmapSG;
 
 //load the required resources using a utility function
 loadResources({
-    vs_shadow: 'shader/shadow.vs.glsl',
-    fs_shadow: 'shader/shadow.fs.glsl',
-    vs_single: 'shader/single.vs.glsl',
-    fs_single: 'shader/single.fs.glsl',
     vs_heightmap: 'heightmap/heightmap.vs.glsl',
     fs_heightmap: 'heightmap/heightmap.fs.glsl',
     vs_general: 'shader/general.vs.glsl',
     fs_general: 'shader/general.fs.glsl',
     vs_particle: 'shader/particle.vs.glsl',
     fs_particle: 'shader/particle.fs.glsl',
-    fence: 'models/fence.obj',
     watchTower: 'models/watchtower.obj',
     tent: 'models/Tent.obj',
-    woodTexture: 'models/Beige.jpg',
     camouflageTexture: 'models/camouflage.png',
-    sniperTexture: 'models/sniper.jpg',
-    sniper: 'models/sniper.obj',
-    model: 'models/C-3PO.obj'
+    sniper: 'models/sniper.obj'
 }).then(function(resources /*an object containing our keys with the loaded resources*/ ) {
     init(resources);
 

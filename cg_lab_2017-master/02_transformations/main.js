@@ -73,7 +73,8 @@ var cubeIndices =  new Float32Array([
 //load the shader resources using a utility function
 loadResources({
   vs: 'shader/simple.vs.glsl',
-  fs: 'shader/simple.fs.glsl'
+  fs: 'shader/simple.fs.glsl',
+  visier: 'visier.png'
 }).then(function (resources /*an object containing our keys with the loaded resources*/) {
   init(resources);
 

@@ -102,22 +102,6 @@ function createFire(gl, resources){
   return shaderNode;
 }
 
-function createFence(resources){
-  var fence = new MaterialSGNode(
-    new AdvancedTextureSGNode(resources.woodTexture,
-    new RenderSGNode(resources.fence)
-  ));
-  //gold
-  fence.ambient = [0.5, 0.5, 0.5, 1];
-  fence.diffuse = [0.37647, 0.22352, 0.07450, 1];
-  fence.specular = [0.0, 0.0, 0.0, 1];
-  fence.shininess = 0.7;
-
-  var transformationNode = new TransformationSGNode(mat4.create(),
-    new TransformationSGNode(glm.translate(-3,0, 2),  fence));
-  return transformationNode;
-}
-
 
 function createWatchTower(resources, transformations){
   var watchTower = new MaterialSGNode(

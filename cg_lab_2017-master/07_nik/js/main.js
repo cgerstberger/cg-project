@@ -10,9 +10,9 @@ const camera = {
     y: -45
   },
   translation: {
-    x: 0,
+    x: -5,
     y: 1,
-    z: -10
+    z: -20
   }
 };
 

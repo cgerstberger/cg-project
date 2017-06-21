@@ -86,8 +86,8 @@ function cloneTransformation(basicTransformation){
   return transformation;
 }
 
-function makeSniper(){
-  var transformationNode = sg.transform(glm.translate(0.0,0.0,0.0));
+function makeSniper(transformations){
+  var transformationNode = createTransformationSGNode(transformations);
   var leftArmTransformation = cloneTransformation(basicTransformations.leftArm);
   leftArmTransformation.rotation.z = 90.0;
   leftArmTransformation.rotation.x = 90.0;
@@ -137,13 +137,13 @@ function makeSniper(){
     rightUnderLeg: {node: rightUnderLeg, transformation:rightUnderLegTransformation},
     body: {node: body, transformation:cloneTransformation(basicTransformations.body)},
     head: {node: head, transformation:cloneTransformation(basicTransformations.head)},
-    transformationNode: transformationNode
+    transformationNode:  {node: transformationNode, transformation:transformations}
   };
   return transformationNode;
 }
 
-function makeHuman(){
-  var transformationNode = sg.transform(glm.translate(0.0,0.0,0.0));
+function makeHuman(transformations){
+  var transformationNode = createTransformationSGNode(transformations);
   var leftArm = makeArm(basicTransformations.leftArm, basicTransformations.leftUnderArm);
 
   transformationNode.append(leftArm);
@@ -164,7 +164,7 @@ function makeHuman(){
     rightLeg: {node: rightLeg, transformation:cloneTransformation(basicTransformations.rightLeg)},
     body: {node: body, transformation:cloneTransformation(basicTransformations.body)},
     head: {node: head, transformation:cloneTransformation(basicTransformations.head)},
-    transformationNode: transformationNode
+    transformationNode: {node: transformationNode, transformation:transformations}
   };
   return transformationNode;
 }
@@ -239,15 +239,34 @@ function rotateZ(angle, transformations, transfermationNode) {
   return transformations;
 }
 
+function translate(x,y,z, transformations, transfermationNode) {
+  transformations.translation.x += x;
+  transformations.translation.y += y;
+  transformations.translation.z += z;
+  var transformationMatrix = createTransformationMatrix(transformations);
+  transfermationNode.matrix = transformationMatrix;
+  return transformations;
+}
+
 class HumanMoveRenderSGNode extends SGNode {
-  constructor(human, children){
+  constructor(human,distance,velocity, children){
     super(children);
     this.human = human;
     this.angle = 0;
     this.change = 1.5;
+    this.distance = distance;
+    this.distance2 = distance;
+    this.velocity = velocity;
   }
 
   render(context) {
+    if(this.distance<0){
+      this.distance = this.distance2;
+      this.velocity.x = -this.velocity.x;
+      this.velocity.y = -this.velocity.y;
+      this.velocity.z = -this.velocity.z;
+      rotateY(180,this.human.transformationNode.transformation,this.human.transformationNode.node);
+    }
     if(this.angle>30||this.angle<-30){
       this.change = -this.change;
     }
@@ -256,31 +275,39 @@ class HumanMoveRenderSGNode extends SGNode {
     rotateX(-this.change, this.human.leftArm.transformation,this.human.leftArm.node);
     rotateX(-this.change, this.human.leftLeg.transformation,this.human.leftLeg.node);
     this.angle+=this.change;
+    translate(this.velocity.x,this.velocity.y,this.velocity.z,this.human.transformationNode.transformation,this.human.transformationNode.node);
+    this.distance--;
     super.render(context);
   }
 }
 
 class HumanCrawlRenderSGNode extends SGNode {
-  constructor(human, children){
+  constructor(human, distance, velocity, children){
     super(children);
     this.human = human;
     this.angle = 91.5;
     this.change = 1.5;
     this.change2 = 1.0;
+    this.distance = distance;
+    this.velocity = velocity;
   }
 
   render(context) {
-    if(this.angle>90||this.angle<0){
-      this.change = -this.change;
-        this.change2 = -this.change2;
+    if(this.distance>0){
+      if(this.angle>90||this.angle<0){
+        this.change = -this.change;
+          this.change2 = -this.change2;
+      }
+      rotateY(this.change2, this.human.rightArm.transformation,this.human.rightArm.node);
+      rotateY(this.change, this.human.rightLeg.transformation,this.human.rightLeg.node);
+      rotateX(-this.change, this.human.rightUnderLeg.transformation,this.human.rightUnderLeg.node);
+      rotateY(this.change2, this.human.leftArm.transformation,this.human.leftArm.node);
+      rotateY(this.change, this.human.leftLeg.transformation,this.human.leftLeg.node);
+      rotateX(this.change, this.human.leftUnderLeg.transformation,this.human.leftUnderLeg.node);
+      this.angle+=this.change;
+      translate(this.velocity.x,this.velocity.y,this.velocity.z,this.human.transformationNode.transformation,this.human.transformationNode.node);
+      this.distance--;
     }
-    rotateY(this.change2, this.human.rightArm.transformation,this.human.rightArm.node);
-    rotateY(this.change, this.human.rightLeg.transformation,this.human.rightLeg.node);
-    rotateX(-this.change, this.human.rightUnderLeg.transformation,this.human.rightUnderLeg.node);
-    rotateY(this.change2, this.human.leftArm.transformation,this.human.leftArm.node);
-    rotateY(this.change, this.human.leftLeg.transformation,this.human.leftLeg.node);
-    rotateX(this.change, this.human.leftUnderLeg.transformation,this.human.leftUnderLeg.node);
-    this.angle+=this.change;
     super.render(context);
   }
 }

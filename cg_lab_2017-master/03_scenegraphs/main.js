@@ -74,7 +74,8 @@ loadResources({
   vs: 'shader/simple.vs.glsl',
   fs: 'shader/simple.fs.glsl',
   //TASK 5-3
-  staticcolorvs: 'shader/static_color.vs.glsl'
+  staticcolorvs: 'shader/static_color.vs.glsl',
+  visier: 'visier.png'
 }).then(function (resources /*an object containing our keys with the loaded resources*/) {
   init(resources);
 

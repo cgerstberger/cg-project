@@ -6,9 +6,7 @@ function createSceneGraph(gl, resources) {
   //root.append(transformationNode);
   transformationNode.append(createParticles(gl, resources));
 
-  var sniper = makeSniper();
-  root.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanCrawlRenderSGNode(sniper, sniper.transformationNode)));
-
+  createHumans(resources, root);
   //root.append(createEnemyCamp(resources));
   //var sniper1 = makeHuman();
   //sniper1.rightArm.transformation = rotateX(-30, sniper1.rightArm.transformation,sniper1.rightArm.node);
@@ -124,6 +122,27 @@ function createEnemyCamp(resources) {
   });
   transformationNode.append(obj);
   return transformationNode;
+}
+
+function createHumans(resources, root){
+  var sniper1 = makeSniper({
+    translation: {x:-5, y:0, z:-5},
+    rotation: {x:70,y:0,z:0},
+    scale: {x:1,y:1,z:1}
+  });
+  root.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanCrawlRenderSGNode(sniper1,300,{x:0.0,y:0.005,z:0.01}, sniper1.transformationNode.node)));
+  var sniper2 = makeSniper({
+    translation: {x:-9, y:0, z:-5},
+    rotation: {x:70,y:0,z:0},
+    scale: {x:1,y:1,z:1}
+  });
+  root.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanCrawlRenderSGNode(sniper2,300,{x:0.0,y:0.005,z:0.01}, sniper2.transformationNode.node)));
+  var opponent = makeHuman({
+    translation: {x:-9, y:-2, z:-5},
+    rotation: {x:0,y:180,z:0},
+    scale: {x:1,y:1,z:1}
+  });
+  root.append(new AdvancedTextureSGNode(resources.camouflageTexture, new HumanMoveRenderSGNode(opponent,500,{x:0.0,y:0.0,z:0.03}, opponent.transformationNode.node)));
 }
 
 function createTransformationSGNode(transformations) {

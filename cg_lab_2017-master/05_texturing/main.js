@@ -34,7 +34,8 @@ loadResources({
   vs_single: 'shader/single.vs.glsl',
   fs_single: 'shader/single.fs.glsl',
   floortexture: 'models/lava.jpg',
-  model: 'models/C-3PO.obj'
+  model: 'models/C-3PO.obj',
+  visier: 'visier.png'
 }).then(function (resources /*an object containing our keys with the loaded resources*/) {
   init(resources);
 
@@ -61,10 +62,13 @@ function init(resources) {
   initInteraction(gl.canvas);
 }
 
-function createSceneGraph(gl, resources) {
+function createSceneGraph(gl, resources) { 
   //create scenegraph
   const root = new ShaderSGNode(createProgram(gl, resources.vs, resources.fs));
-
+  var asdf = new TransformationSGNode(glm.transform({ translate: [0,-0,0], rotateX: -90, scale: 3}), [
+    new AdvancedTextureSGNode(resources.visier, new RenderSGNode(makeRect(1,1)))
+  ]);
+  root.append(asdf);
   //light debug helper function
   function createLightSphere() {
     return new ShaderSGNode(createProgram(gl, resources.vs_single, resources.fs_single), [
